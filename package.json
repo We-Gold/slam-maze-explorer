@@ -1,0 +1,18 @@
+{
+	"name": "slam-maze-explorer",
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"vite": "^4.4.0"
+	},
+	"dependencies": {
+		"algernon-js": "^0.2.7",
+		"p5": "^1.7.0"
+	}
+}
+

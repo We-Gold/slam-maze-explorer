@@ -1,0 +1,15 @@
+body {
+	margin: 0;
+	display: flex;
+	flex-direction: column-reverse;
+	justify-content: center;
+	align-items: center;
+	width: 100vw;
+	height: 100vh;
+}
+
+canvas {
+	margin-top: 2rem;
+	touch-action: none;
+}
+
