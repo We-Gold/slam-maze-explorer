@@ -20,7 +20,7 @@ export const renderGridMaze = (p, maze, dimensions) => {
 	// Render all obstacles
 	for (let row = 0; row < rows; row++) {
 		for (let col = 0; col < cols; col++) {
-			if (maze[row][col] === OBSTACLE) {
+			if (maze[row][col]) {
 				const [x, y] = [x1 + col * w, y1 + row * h]
 
 				// Render a rectangle to represent the obstacle

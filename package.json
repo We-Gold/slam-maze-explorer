@@ -11,7 +11,7 @@
 		"vite": "^4.4.0"
 	},
 	"dependencies": {
-		"algernon-js": "^0.2.7",
+		"algernon-js": "^0.3.1",
 		"p5": "^1.7.0"
 	}
 }

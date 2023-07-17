@@ -1,4 +1,4 @@
-import { AStarHeuristic, helpers, solveAStar } from "algernon-js"
+import { AStarHeuristic, helpers, solveAStarGrid } from "algernon-js"
 
 /**
  * Create a SLAM agent that
@@ -24,7 +24,7 @@ export const createSLAMAgent = (
 
 	// Create the internal map, which will be updated
 	// as the agent explores
-	const internalMap = helpers.createFilledMatrix(rows, cols, 0)
+	const internalMap = helpers.createFilledMatrix(rows, cols, false)
 
 	// Store updated maze information
 	let updatedCellIndices = []
@@ -106,7 +106,7 @@ export const createSLAMAgent = (
 		)
 			return []
 
-		const path = solveAStar(internalMap, currentPosition, goalPosition, AStarHeuristic.manhattan)
+		const path = solveAStarGrid(internalMap, currentPosition, goalPosition, AStarHeuristic.manhattan)
 
 		// Move to the next position in the path
 		setCurrentPosition(path[1])

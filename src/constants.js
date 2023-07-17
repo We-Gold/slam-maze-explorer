@@ -11,4 +11,4 @@ export const PAST_PATH = { r: 100, g: 100, b: 100 }
 
 export const AGENT = {r: 255, g: 70, b: 20}
 
-export const mazeSize = {rows: 20, cols: 20}
+export const mazeSize = {rows: 19, cols: 19}
