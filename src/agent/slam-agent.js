@@ -7,6 +7,7 @@ import { createMotionPlan } from "../interfaces/motion-planner"
  * @param {OccupancyGrid} occupancyGrid
  * @param {Position} startPosition
  * @param {Position} goalPosition
+ * @param {CommunicationSensor} communicationSensor
  * @param {number} visibleRadius
  * @returns {Agent}
  */
@@ -14,6 +15,7 @@ export const createSLAMAgent = (
 	occupancyGrid,
 	startPosition,
 	goalPosition,
+	communicationSensor,
 	visibleRadius = 2
 ) => {
 	const environmentSensor = createEnvironmentSensor(occupancyGrid, startPosition, visibleRadius)
@@ -29,6 +31,16 @@ export const createSLAMAgent = (
 		// Update the goal position
 		goalPosition = updatedGoal
 	}
+	const makeMemoryPacket = () => {
+		return {
+			observations: environmentSensor.getAllObservations(),
+			position: getPosition(),
+			targetPosition: null
+		}
+	}
+	const receiveMemory = (memoryPacket) => {
+		environmentSensor.receiveObservations(memoryPacket.observations)
+	}
 
 	const moveWithPlanner = () => {
 		const motionPlan = createMotionPlan(getInternalMap(), getPosition(), getGoalPosition())
@@ -36,6 +48,11 @@ export const createSLAMAgent = (
 		// No need to move if we are at the goal
 		if (motionPlan.futurePath.length() === 0)
 			return motionPlan.futurePath
+
+		const detections = communicationSensor.detectAgentsWithinRadius(visibleRadius)
+		if (detections.length > 0) {
+			communicationSensor.shareMemoryWithAgent(detections[0].agent)
+		}
 
 		// Move to the next position in the path
 		environmentSensor.movePosition(motionPlan.nextPosition)
@@ -52,6 +69,8 @@ export const createSLAMAgent = (
 		getGoalPosition,
 		getAgentPath,
 		getInternalMap,
+		makeMemoryPacket,
+		receiveMemory,
 		moveWithPlanner,
 	}
 }

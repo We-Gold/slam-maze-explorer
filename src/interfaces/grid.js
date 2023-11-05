@@ -36,10 +36,33 @@ export const createOccupancyGrid = (sourceGrid) => {
 				col < currentCol + radius;
 				col++
 			) {
-				if (cellIsValid([row, col]))
+				if (cellIsValid([row, col]) && sourceGrid[row][col])
 					observations.push({
 						index: createPosition(row, col),
-						value: sourceGrid[row][col],
+						value: true,
+					})
+			}
+		}
+
+		return observations
+	}
+
+	/**
+	 * Returns a list of all observations in the occupancy grid
+	 * @returns {Observation[]} a list of observations
+	 */
+	const getAllObservations = () => {
+		// Each observation has an index and a value
+		const observations = []
+
+		// Add all values within the rectangle to the observation
+		for (let row = 0; row < rows; row++) {
+			for (let col = 0; col < cols; col++) {
+				// Store the observation as long as it encodes new information
+				if (sourceGrid[row][col])
+					observations.push({
+						index: createPosition(row, col),
+						value: true,
 					})
 			}
 		}
@@ -61,6 +84,7 @@ export const createOccupancyGrid = (sourceGrid) => {
 		getGrid,
 		getDimensions,
 		getRectObservation,
+		getAllObservations,
 		updateWithObservations,
 	}
 }

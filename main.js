@@ -22,6 +22,7 @@ import { createSLAMAgent } from "./src/agent/slam-agent"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
+import { createCommunicationSensor } from "./src/interfaces/environment"
 
 let occupancyGrid
 
@@ -72,13 +73,41 @@ const initializeMaze = () => {
 	completeMap[goal2.getRow()][goal2.getCol()] = false
 
 	// Find the optimal solution (not currently optimal)
-	perfectPath1 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate()))
+	perfectPath1 = convertCoordsToPath(
+		solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate())
+	)
 
-	perfectPath2 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate()))
+	perfectPath2 = convertCoordsToPath(
+		solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate())
+	)
 
 	// Recursively regenerate the maze if there is no valid path
 	// TODO replace with while loop and keep variables internal
-	if (perfectPath1.length() == 0 || perfectPath2.length() == 0) initializeMaze()
+	if (perfectPath1.length() == 0 || perfectPath2.length() == 0)
+		initializeMaze()
+}
+
+const initAgents = () => {
+	const agents = []
+
+	// Initialize the SLAM agents
+	agent1 = createSLAMAgent(
+		occupancyGrid,
+		createPosition(0, 0),
+		goal1,
+		createCommunicationSensor(0, agents),
+		3
+	)
+
+	agent2 = createSLAMAgent(
+		occupancyGrid,
+		createPosition(0, 0),
+		goal2,
+		createCommunicationSensor(1, agents),
+		3
+	)
+
+	agents.push(agent1, agent2)
 }
 
 const setup = (p) => {
@@ -89,10 +118,7 @@ const setup = (p) => {
 
 	occupancyGrid = createOccupancyGrid(completeMap)
 
-	// Initialize the SLAM agents
-	agent1 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal1, 3)
-
-	agent2 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal2, 3)
+	initAgents()
 
 	// Create the dimensions for the editing map
 	mapDimensions["editingMap"] = calculateMazeDimensions(
@@ -144,8 +170,16 @@ const render = (p) => {
 
 	if (currentMode === Mode.SOLVING) {
 		// TODO: This type of getter potentially exposes too much
-		renderGridMaze(p, agent1.getInternalMap().getGrid(), mapDimensions["primaryMap1"])
-		renderGridMaze(p, agent2.getInternalMap().getGrid(), mapDimensions["primaryMap2"])
+		renderGridMaze(
+			p,
+			agent1.getInternalMap().getGrid(),
+			mapDimensions["primaryMap1"]
+		)
+		renderGridMaze(
+			p,
+			agent2.getInternalMap().getGrid(),
+			mapDimensions["primaryMap2"]
+		)
 		renderGridMaze(
 			p,
 			occupancyGrid.getGrid(),
@@ -190,11 +224,7 @@ const render = (p) => {
 			mapDimensions["primaryMap1"]
 		)
 
-		renderAgent(
-			p,
-			agent1.getPosition(),
-			mapDimensions["primaryMap1"]
-		)
+		renderAgent(p, agent1.getPosition(), mapDimensions["primaryMap1"])
 
 		// Render the second agent
 		renderPath(
@@ -210,11 +240,7 @@ const render = (p) => {
 			mapDimensions["primaryMap2"]
 		)
 
-		renderAgent(
-			p,
-			agent2.getPosition(),
-			mapDimensions["primaryMap2"]
-		)
+		renderAgent(p, agent2.getPosition(), mapDimensions["primaryMap2"])
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {
@@ -256,10 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (currentMode === Mode.EDITING) {
 			currentMode = Mode.SOLVING
 
-			// Initialize the SLAM agents
-			agent1 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal1, 3)
-
-			agent2 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal2, 3)
+			initAgents()
 
 			// Update button text
 			modeButton.textContent = `Cancel`
@@ -271,3 +294,4 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	})
 })
+
