@@ -18,7 +18,12 @@ import {
 	mazeSize,
 } from "./src/constants"
 import { renderAgent, renderGridMaze, renderPath } from "./src/render-helpers"
-import { createSLAMAgent } from "./src/slam-agent"
+import { createSLAMAgent } from "./src/agent/slam-agent"
+import { createOccupancyGrid } from "./src/interfaces/grid"
+import { convertCoordsToPath } from "./src/interfaces/motion-planner"
+import { createPosition } from "./src/interfaces/components"
+
+let occupancyGrid
 
 let completeMap
 let perfectPath1
@@ -58,21 +63,22 @@ const initializeMaze = () => {
 	fillGrid(completeMap, 0.1)
 	degradeGrid(completeMap, 0.3)
 
-	goal1 = [0, completeMap[0].length - 1]
-	goal2 = [completeMap.length - 1, 0]
+	goal1 = createPosition(0, completeMap[0].length - 1)
+	goal2 = createPosition(completeMap.length - 1, 0)
 
 	// Since we fill the grid randomly, ensure that the start and goal are open
 	completeMap[0][0] = false
-	completeMap[goal1[0]][goal1[1]] = false
-	completeMap[goal2[0]][goal2[1]] = false
+	completeMap[goal1.getRow()][goal1.getCol()] = false
+	completeMap[goal2.getRow()][goal2.getCol()] = false
 
 	// Find the optimal solution (not currently optimal)
-	perfectPath1 = solveAStarGrid(completeMap, [0, 0], goal1)
+	perfectPath1 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate()))
 
-	perfectPath2 = solveAStarGrid(completeMap, [0, 0], goal2)
+	perfectPath2 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate()))
 
-	// Recursively regenerate the maze if there is no path
-	if (perfectPath1.length == 0 || perfectPath2.length == 0) initializeMaze()
+	// Recursively regenerate the maze if there is no valid path
+	// TODO replace with while loop and keep variables internal
+	if (perfectPath1.length() == 0 || perfectPath2.length() == 0) initializeMaze()
 }
 
 const setup = (p) => {
@@ -81,47 +87,49 @@ const setup = (p) => {
 
 	initializeMaze()
 
-	// Initialize the SLAM agent
-	agent1 = createSLAMAgent(completeMap, [0, 0], goal1, 3)
+	occupancyGrid = createOccupancyGrid(completeMap)
 
-	agent2 = createSLAMAgent(completeMap, [0, 0], goal2, 3)
+	// Initialize the SLAM agent
+	agent1 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal1, 3)
+
+	agent2 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal2, 3)
 
 	// Create the dimensions for the editing map
 	mapDimensions["editingMap"] = calculateMazeDimensions(
-		completeMap,
+		occupancyGrid,
 		[0, 0],
 		[800, 800]
 	)
 
 	// Create the first column
 	mapDimensions["primaryMap1"] = calculateMazeDimensions(
-		completeMap,
+		occupancyGrid,
 		[0, 0],
 		[400, 400]
 	)
 
 	mapDimensions["secondaryMap1"] = calculateMazeDimensions(
-		completeMap,
+		occupancyGrid,
 		[0, 400],
 		[400, 800]
 	)
 
 	// Create the second column
 	mapDimensions["primaryMap2"] = calculateMazeDimensions(
-		completeMap,
+		occupancyGrid,
 		[400, 0],
 		[800, 400]
 	)
 
 	mapDimensions["secondaryMap2"] = calculateMazeDimensions(
-		completeMap,
+		occupancyGrid,
 		[400, 400],
 		[800, 800]
 	)
 }
 
-const calculateMazeDimensions = (maze, topLeft, bottomRight) => {
-	const [rows, cols] = [maze.length, maze[0].length]
+const calculateMazeDimensions = (occupancyGrid, topLeft, bottomRight) => {
+	const [rows, cols] = occupancyGrid.getDimensions()
 
 	const [x1, y1] = topLeft
 	const [x2, y2] = bottomRight
@@ -135,10 +143,19 @@ const render = (p) => {
 	p.background(BACKGROUND)
 
 	if (currentMode === Mode.SOLVING) {
-		renderGridMaze(p, agent1.getInternalMap(), mapDimensions["primaryMap1"])
-		renderGridMaze(p, agent2.getInternalMap(), mapDimensions["primaryMap2"])
-		renderGridMaze(p, completeMap, mapDimensions["secondaryMap1"])
-		renderGridMaze(p, completeMap, mapDimensions["secondaryMap2"])
+		// TODO: This type of getter potentially exposes too much
+		renderGridMaze(p, agent1.getInternalMap().getGrid(), mapDimensions["primaryMap1"])
+		renderGridMaze(p, agent2.getInternalMap().getGrid(), mapDimensions["primaryMap2"])
+		renderGridMaze(
+			p,
+			occupancyGrid.getGrid(),
+			mapDimensions["secondaryMap1"]
+		)
+		renderGridMaze(
+			p,
+			occupancyGrid.getGrid(),
+			mapDimensions["secondaryMap2"]
+		)
 
 		// Render the "perfect" solution to the secondary map
 		renderPath(
@@ -175,7 +192,7 @@ const render = (p) => {
 
 		renderAgent(
 			p,
-			agent1.getCurrentPosition(),
+			agent1.getPosition(),
 			mapDimensions["primaryMap1"]
 		)
 
@@ -195,13 +212,13 @@ const render = (p) => {
 
 		renderAgent(
 			p,
-			agent2.getCurrentPosition(),
+			agent2.getPosition(),
 			mapDimensions["primaryMap2"]
 		)
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {
-		renderGridMaze(p, completeMap, mapDimensions["editingMap"])
+		renderGridMaze(p, occupancyGrid.getGrid(), mapDimensions["editingMap"])
 	}
 }
 
@@ -240,9 +257,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			currentMode = Mode.SOLVING
 
 			// Find the optimal solution (not currently optimal)
-			perfectPath1 = solveAStarGrid(completeMap, [0, 0], goal1)
+			perfectPath1 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate()))
 
-			perfectPath2 = solveAStarGrid(completeMap, [0, 0], goal2)
+			perfectPath2 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate()))
 
 			// Update button text
 			modeButton.textContent = `Cancel`

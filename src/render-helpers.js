@@ -52,37 +52,25 @@ export const renderRawMaze = (p, maze, dimensions) => {
 			const [x, y] = [x1 + col * w, y1 + row * h]
 
 			if (
-				helpers.cellIs(
-					helpers.North,
-					helpers.cellAt([row, col], maze)
-				)
+				helpers.cellIs(helpers.North, helpers.cellAt([row, col], maze))
 			) {
 				p.line(x, y, x + w, y)
 			}
 
 			if (
-				helpers.cellIs(
-					helpers.South,
-					helpers.cellAt([row, col], maze)
-				)
+				helpers.cellIs(helpers.South, helpers.cellAt([row, col], maze))
 			) {
 				p.line(x + w, y + h, x, y + h)
 			}
 
 			if (
-				helpers.cellIs(
-					helpers.East,
-					helpers.cellAt([row, col], maze)
-				)
+				helpers.cellIs(helpers.East, helpers.cellAt([row, col], maze))
 			) {
 				p.line(x + w, y, x + w, y + h)
 			}
 
 			if (
-				helpers.cellIs(
-					helpers.West,
-					helpers.cellAt([row, col], maze)
-				)
+				helpers.cellIs(helpers.West, helpers.cellAt([row, col], maze))
 			) {
 				p.line(x, y + h, x, y)
 			}
@@ -96,7 +84,7 @@ export const renderRawMaze = (p, maze, dimensions) => {
  * Assumes that the background is black, and the obstacles and walls will be white.
  *
  * @param {*} p p5 object
- * @param {number[][]} path The path to render on the maze
+ * @param {Path} path The path to render on the maze
  * @param {Object} color The r, g, b representing the color of the path
  * @param {number[]} dimensions [rows, cols, w, h]
  */
@@ -110,19 +98,21 @@ export const renderPath = (p, path, color, dimensions) => {
 	p.beginShape()
 
 	// Add all points in the path to the shape
-	for (const [row, col] of path) {
+	for (const position of path.getPositions()) {
+		const [row, col] = position.getCoordinate()
 		p.vertex(x + col * w + w / 2, y + row * h + h / 2)
 	}
 
 	p.endShape()
 }
 
-
-export const renderAgent = (p, [row, col], dimensions) => {
+export const renderAgent = (p, position, dimensions) => {
 	const [, , w, h, x, y] = dimensions
 
 	p.noStroke()
 	p.fill(AGENT.r, AGENT.g, AGENT.b)
+
+	const [row, col] = position.getCoordinate()
 
 	p.circle(x + col * w + w / 2, y + row * h + h / 2, w / 1.5)
 }
