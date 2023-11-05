@@ -89,7 +89,7 @@ const setup = (p) => {
 
 	occupancyGrid = createOccupancyGrid(completeMap)
 
-	// Initialize the SLAM agent
+	// Initialize the SLAM agents
 	agent1 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal1, 3)
 
 	agent2 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal2, 3)
@@ -256,10 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (currentMode === Mode.EDITING) {
 			currentMode = Mode.SOLVING
 
-			// Find the optimal solution (not currently optimal)
-			perfectPath1 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate()))
+			// Initialize the SLAM agents
+			agent1 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal1, 3)
 
-			perfectPath2 = convertCoordsToPath(solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate()))
+			agent2 = createSLAMAgent(occupancyGrid, createPosition(0, 0), goal2, 3)
 
 			// Update button text
 			modeButton.textContent = `Cancel`
