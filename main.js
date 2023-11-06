@@ -206,9 +206,11 @@ const render = (p) => {
 			mapDimensions["secondaryMap2"]
 		)
 
-		// Set a particular update rate
-		agent1FuturePath = agent1.moveWithPlanner()
-		agent2FuturePath = agent2.moveWithPlanner()
+		agent1.act()
+		agent2.act()
+
+		agent1FuturePath = agent1.getFuturePath()
+		agent2FuturePath = agent2.getFuturePath()
 
 		// Render the first agent
 		renderPath(

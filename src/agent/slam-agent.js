@@ -1,6 +1,7 @@
 import { createPath } from "../interfaces/components"
 import { createEnvironmentSensor } from "../interfaces/environment"
 import { createMotionPlan } from "../interfaces/motion-planner"
+import { agentPeriodic } from "./agent-logic"
 
 /**
  * Create a SLAM agent that
@@ -18,12 +19,20 @@ export const createSLAMAgent = (
 	communicationSensor,
 	visibleRadius = 2
 ) => {
-	const environmentSensor = createEnvironmentSensor(occupancyGrid, startPosition, visibleRadius)
+	const environmentSensor = createEnvironmentSensor(
+		occupancyGrid,
+		startPosition,
+		visibleRadius
+	)
 
 	// Store the path the agent has taken
-	let agentPath = createPath([startPosition])
+	let pastAgentPath = createPath([startPosition])
 
-	const getAgentPath = () => agentPath
+	// Store the path the agent will take
+	let futureAgentPath = createPath([])
+
+	const getAgentPath = () => pastAgentPath
+	const getFuturePath = () => futureAgentPath
 	const getInternalMap = () => environmentSensor.getInternalMap()
 	const getPosition = () => environmentSensor.getPosition()
 	const getGoalPosition = () => goalPosition
@@ -35,32 +44,45 @@ export const createSLAMAgent = (
 		return {
 			observations: environmentSensor.getAllObservations(),
 			position: getPosition(),
-			targetPosition: null
+			targetPosition: null,
 		}
 	}
 	const receiveMemory = (memoryPacket) => {
 		environmentSensor.receiveObservations(memoryPacket.observations)
 	}
 
-	const moveWithPlanner = () => {
-		const motionPlan = createMotionPlan(getInternalMap(), getPosition(), getGoalPosition())
+	const act = () => {
+		const detections =
+			communicationSensor.detectAgentsWithinRadius(visibleRadius)
 
-		// No need to move if we are at the goal
-		if (motionPlan.futurePath.length() === 0)
-			return motionPlan.futurePath
-
-		const detections = communicationSensor.detectAgentsWithinRadius(visibleRadius)
-		if (detections.length > 0) {
-			communicationSensor.shareMemoryWithAgent(detections[0].agent)
+		const inputs = {
+			hasNearbyAgents: detections.length > 0,
+			agentDetections: detections,
+			isAtGoal: getPosition().equals(getGoalPosition()),
 		}
 
-		// Move to the next position in the path
-		environmentSensor.movePosition(motionPlan.nextPosition)
+		const actions = {
+			followPlannedPath: () => {
+				const motionPlan = createMotionPlan(
+					getInternalMap(),
+					getPosition(),
+					getGoalPosition()
+				)
 
-		// Store the current point as part of the route
-		agentPath.add(motionPlan.nextPosition)
+				// Move to the next position in the path
+				environmentSensor.movePosition(motionPlan.nextPosition)
 
-		return motionPlan.futurePath
+				// Store the current point as part of the route
+				pastAgentPath.add(motionPlan.nextPosition)
+
+				futureAgentPath = motionPlan.futurePath
+			},
+			shareMemoryWithAgent: (agent) => {
+				communicationSensor.shareMemoryWithAgent(agent)
+			},
+		}
+
+		agentPeriodic(inputs, actions)
 	}
 
 	return {
@@ -68,9 +90,11 @@ export const createSLAMAgent = (
 		setGoalPosition,
 		getGoalPosition,
 		getAgentPath,
+		getFuturePath,
 		getInternalMap,
 		makeMemoryPacket,
 		receiveMemory,
-		moveWithPlanner,
+		act,
 	}
 }
+
