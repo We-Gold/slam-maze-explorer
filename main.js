@@ -12,9 +12,11 @@ import {
 } from "algernon-js"
 import {
 	BACKGROUND,
+	COMMUNICATION_RADIUS,
 	CURRENT_PATH,
 	PAST_PATH,
 	PERFECT_PATH,
+	VISIBLE_RADIUS,
 	mazeSize,
 } from "./src/constants"
 import { renderAgent, renderGridMaze, renderPath } from "./src/render-helpers"
@@ -23,6 +25,7 @@ import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
 import { createCommunicationSensor } from "./src/interfaces/environment"
+import { createAgentManager } from "./src/agent/agent-manager"
 
 let occupancyGrid
 
@@ -88,26 +91,30 @@ const initializeMaze = () => {
 }
 
 const initAgents = () => {
-	const agents = []
+	const agentManager = createAgentManager()
 
 	// Initialize the SLAM agents
 	agent1 = createSLAMAgent(
 		occupancyGrid,
 		createPosition(0, 0),
 		goal1,
-		createCommunicationSensor(0, agents),
-		3
+		createCommunicationSensor(agentManager.getNextAgentId(), agentManager),
+		VISIBLE_RADIUS,
+		COMMUNICATION_RADIUS
 	)
+
+	agentManager.addAgent(agent1)
 
 	agent2 = createSLAMAgent(
 		occupancyGrid,
 		createPosition(0, 0),
 		goal2,
-		createCommunicationSensor(1, agents),
-		3
+		createCommunicationSensor(agentManager.getNextAgentId(), agentManager),
+		VISIBLE_RADIUS,
+		COMMUNICATION_RADIUS
 	)
 
-	agents.push(agent1, agent2)
+	agentManager.addAgent(agent2)
 }
 
 const setup = (p) => {

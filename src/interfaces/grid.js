@@ -2,6 +2,21 @@ import { helpers } from "algernon-js"
 import { createPosition } from "./components"
 
 /**
+ * @typedef {Object} Observation
+ * @property {Position} index - The index of the observation
+ * @property {boolean} value - The value of the observation
+ */
+
+/**
+ * @typedef {Object} OccupancyGrid
+ * @property {function(): boolean[][]} getGrid - Returns the internal grid
+ * @property {function(): [number, number]} getDimensions - Returns the dimensions of the grid
+ * @property {function(Position, number): Observation[]} getRectObservation - Returns a rectangular observation from the grid
+ * @property {function(): Observation[]} getAllObservations - Returns a list of all observations in the grid
+ * @property {function(Observation[]): void} updateWithObservations - Modifies the grid based on a set of observations
+ */
+
+/**
  * Creates an interface for interacting with the occupancy grid
  * @param {boolean[][]} sourceGrid the internal grid
  * @returns {OccupancyGrid} an interface for getting observations from the grid

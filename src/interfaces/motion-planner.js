@@ -10,11 +10,18 @@ export const convertCoordsToPath = (indexPath) =>
 	createPath(indexPath.map(([row, col]) => createPosition(row, col)))
 
 /**
+ * Represents a motion plan containing the next position in the path and the complete future plan.
+ * @typedef {Object} MotionPlan
+ * @property {Position} nextPosition - The next position in the path.
+ * @property {Path} futurePath - The complete future plan.
+ */
+
+/**
  * Creates a motion plan based on a given map, a current location, and a goal location.
  * @param {OccupancyGrid} occupancyGrid
  * @param {Position} currentPosition
  * @param {Position} goalPosition
- * @returns an object containing the next position in the path and the complete future plan
+ * @returns {MotionPlan} an object containing the next position in the path and the complete future plan
  */
 export const createMotionPlan = (
 	occupancyGrid,

@@ -10,7 +10,7 @@
  * The possible results of an agent's decision-making process
  * @typedef {Object} AgentActions
  * @property {() => void} followPlannedPath
- * @property {(agent: Agent) => void} shareMemoryWithAgent
+ * @property {(agent: import("./slam-agent").Agent) => void} shareMemoryWithAgent
  */
 
 /**
