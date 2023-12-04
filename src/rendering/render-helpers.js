@@ -1,5 +1,5 @@
 import { helpers } from "algernon-js"
-import { AGENT, BACKGROUND, WALL } from "./constants"
+import { AGENT, BACKGROUND, WALL } from "../constants"
 
 /**
  * Render a maze within the given region.

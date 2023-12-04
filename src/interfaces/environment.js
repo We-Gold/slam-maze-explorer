@@ -78,11 +78,9 @@ export const createEnvironmentSensor = (
  * @param {AgentManager} agentManager
  * @returns {CommunicationSensor} the communication sensor
  */
-export const createCommunicationSensor = (agentId, agentManager) => {
-	const agent = () => agentManager.getAgent(agentId)
-
+export const createCommunicationSensor = (getAgent, getOtherAgents) => {
 	const distanceToAgent = (otherAgent) => {
-		const [row, col] = agent().getPosition().getCoordinate()
+		const [row, col] = getAgent().getPosition().getCoordinate()
 		const [_row, _col] = otherAgent.getPosition().getCoordinate()
 
 		return Math.abs(row - _row) + Math.abs(col - _col)
@@ -91,7 +89,7 @@ export const createCommunicationSensor = (agentId, agentManager) => {
 	const detectAgentsWithinRadius = (radius) => {
 		const localAgents = []
 
-		for (const _agent of agentManager.getOtherAgents(agentId)) {
+		for (const _agent of getOtherAgents()) {
 			const distance = distanceToAgent(_agent)
 
 			if (distance <= radius)
@@ -102,7 +100,7 @@ export const createCommunicationSensor = (agentId, agentManager) => {
 	}
 
 	const shareMemoryWithAgent = (otherAgent) => {
-		otherAgent.receiveMemory(agent().makeMemoryPacket())
+		otherAgent.receiveMemory(getAgent().makeMemoryPacket())
 	}
 
 	return { detectAgentsWithinRadius, shareMemoryWithAgent }

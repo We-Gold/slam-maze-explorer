@@ -19,13 +19,13 @@ import {
 	VISIBLE_RADIUS,
 	mazeSize,
 } from "./src/constants"
-import { renderAgent, renderGridMaze, renderPath } from "./src/render-helpers"
 import { createSLAMAgent } from "./src/agent/slam-agent"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
 import { createCommunicationSensor } from "./src/interfaces/environment"
 import { createAgentManager } from "./src/agent/agent-manager"
+import { createMazeRenderer } from "./src/rendering/renderer"
 
 let occupancyGrid
 
@@ -34,15 +34,14 @@ let perfectPath1
 let perfectPath2
 
 let agent1
-let agent1FuturePath = []
-
 let agent2
-let agent2FuturePath = []
 
 let goal1
 let goal2
 
-const mapDimensions = {}
+let agentManager
+
+const maps = {}
 
 const Mode = {
 	EDITING: 0,
@@ -91,14 +90,17 @@ const initializeMaze = () => {
 }
 
 const initAgents = () => {
-	const agentManager = createAgentManager()
+	agentManager = createAgentManager()
 
 	// Initialize the SLAM agents
 	agent1 = createSLAMAgent(
 		occupancyGrid,
 		createPosition(0, 0),
 		goal1,
-		createCommunicationSensor(agentManager.getNextAgentId(), agentManager),
+		createCommunicationSensor(
+			agentManager.createGetAgentMethod(),
+			agentManager.createGetOtherAgentsMethod()
+		),
 		VISIBLE_RADIUS,
 		COMMUNICATION_RADIUS
 	)
@@ -109,7 +111,10 @@ const initAgents = () => {
 		occupancyGrid,
 		createPosition(0, 0),
 		goal2,
-		createCommunicationSensor(agentManager.getNextAgentId(), agentManager),
+		createCommunicationSensor(
+			agentManager.createGetAgentMethod(),
+			agentManager.createGetOtherAgentsMethod()
+		),
 		VISIBLE_RADIUS,
 		COMMUNICATION_RADIUS
 	)
@@ -127,37 +132,32 @@ const setup = (p) => {
 
 	initAgents()
 
-	// Create the dimensions for the editing map
-	mapDimensions["editingMap"] = calculateMazeDimensions(
-		occupancyGrid,
-		[0, 0],
-		[800, 800]
+	// Create the editing map
+	maps.editingMap = createMazeRenderer(
+		p,
+		calculateMazeDimensions(occupancyGrid, [0, 0], [800, 800])
 	)
 
 	// Create the first column
-	mapDimensions["primaryMap1"] = calculateMazeDimensions(
-		occupancyGrid,
-		[0, 0],
-		[400, 400]
+	maps.primaryMap1 = createMazeRenderer(
+		p,
+		calculateMazeDimensions(occupancyGrid, [0, 0], [400, 400])
 	)
 
-	mapDimensions["secondaryMap1"] = calculateMazeDimensions(
-		occupancyGrid,
-		[0, 400],
-		[400, 800]
+	maps.secondaryMap1 = createMazeRenderer(
+		p,
+		calculateMazeDimensions(occupancyGrid, [0, 400], [400, 800])
 	)
 
 	// Create the second column
-	mapDimensions["primaryMap2"] = calculateMazeDimensions(
-		occupancyGrid,
-		[400, 0],
-		[800, 400]
+	maps.primaryMap2 = createMazeRenderer(
+		p,
+		calculateMazeDimensions(occupancyGrid, [400, 0], [800, 400])
 	)
 
-	mapDimensions["secondaryMap2"] = calculateMazeDimensions(
-		occupancyGrid,
-		[400, 400],
-		[800, 800]
+	maps.secondaryMap2 = createMazeRenderer(
+		p,
+		calculateMazeDimensions(occupancyGrid, [400, 400], [800, 800])
 	)
 }
 
@@ -176,84 +176,33 @@ const render = (p) => {
 	p.background(BACKGROUND)
 
 	if (currentMode === Mode.SOLVING) {
-		// TODO: This type of getter potentially exposes too much
-		renderGridMaze(
-			p,
-			agent1.getInternalMap().getGrid(),
-			mapDimensions["primaryMap1"]
-		)
-		renderGridMaze(
-			p,
-			agent2.getInternalMap().getGrid(),
-			mapDimensions["primaryMap2"]
-		)
-		renderGridMaze(
-			p,
-			occupancyGrid.getGrid(),
-			mapDimensions["secondaryMap1"]
-		)
-		renderGridMaze(
-			p,
-			occupancyGrid.getGrid(),
-			mapDimensions["secondaryMap2"]
-		)
+		// Render currrent agent maps
+		maps.primaryMap1.renderMaze(agent1.getInternalMap().getGrid())
+		maps.primaryMap2.renderMaze(agent2.getInternalMap().getGrid())
+
+		// Render solution maps
+		maps.secondaryMap1.renderMaze(occupancyGrid.getGrid())
+		maps.secondaryMap2.renderMaze(occupancyGrid.getGrid())
 
 		// Render the "perfect" solution to the secondary map
-		renderPath(
-			p,
-			perfectPath1,
-			PERFECT_PATH,
-			mapDimensions["secondaryMap1"]
-		)
+		maps.secondaryMap1.renderPathWithColor(perfectPath1, PERFECT_PATH)
+		maps.secondaryMap2.renderPathWithColor(perfectPath2, PERFECT_PATH)
 
-		renderPath(
-			p,
-			perfectPath2,
-			PERFECT_PATH,
-			mapDimensions["secondaryMap2"]
-		)
+		agentManager.act()
 
-		agent1.act()
-		agent2.act()
+		// Render the first agent's path
+		maps.primaryMap1.renderPathWithColor(agent1.getFuturePath(), CURRENT_PATH)
+		maps.primaryMap1.renderPathWithColor(agent1.getAgentPath(), PAST_PATH)
+		maps.primaryMap1.renderAgents([agent1, agent2])
 
-		agent1FuturePath = agent1.getFuturePath()
-		agent2FuturePath = agent2.getFuturePath()
-
-		// Render the first agent
-		renderPath(
-			p,
-			agent1FuturePath,
-			CURRENT_PATH,
-			mapDimensions["primaryMap1"]
-		)
-		renderPath(
-			p,
-			agent1.getAgentPath(),
-			PAST_PATH,
-			mapDimensions["primaryMap1"]
-		)
-
-		renderAgent(p, agent1.getPosition(), mapDimensions["primaryMap1"])
-
-		// Render the second agent
-		renderPath(
-			p,
-			agent2FuturePath,
-			CURRENT_PATH,
-			mapDimensions["primaryMap2"]
-		)
-		renderPath(
-			p,
-			agent2.getAgentPath(),
-			PAST_PATH,
-			mapDimensions["primaryMap2"]
-		)
-
-		renderAgent(p, agent2.getPosition(), mapDimensions["primaryMap2"])
+		// Render the second agent's path
+		maps.primaryMap2.renderPathWithColor(agent2.getFuturePath(), CURRENT_PATH)
+		maps.primaryMap2.renderPathWithColor(agent2.getAgentPath(), PAST_PATH)
+		maps.primaryMap2.renderAgents([agent2])
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {
-		renderGridMaze(p, occupancyGrid.getGrid(), mapDimensions["editingMap"])
+		maps.editingMap.renderMaze(occupancyGrid.getGrid())
 	}
 }
 
@@ -261,7 +210,7 @@ const mousePressed = (p) => {
 	// Only allow editing cells when in EDITING mode
 	if (currentMode !== Mode.EDITING) return
 
-	const [, , w, h] = mapDimensions["editingMap"]
+	const [, , w, h] = maps.editingMap.getDimensions()
 	const [x, y] = [p.mouseX, p.mouseY]
 
 	// Prevent invalid events
