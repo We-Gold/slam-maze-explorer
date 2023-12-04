@@ -1,9 +1,12 @@
+import { COMMUNICATION_RADIUS, VISIBLE_RADIUS } from "../constants"
+import { createSLAMAgent } from "./slam-agent"
+import { createCommunicationSensor } from "../interfaces/environment"
+
 /**
  * Creates an object to manage all of the agents in the system.
  * @typedef {Object} AgentManager
- * @property {function} addAgent - Adds an agent to the manager.
- * @property {function} createGetAgentMethod - Creates a getter method to access the next added agent.
- * @property {function} createGetOtherAgentsMethod - Creates a method that gets all agents but the next one added.
+ * @property {function} getAgent - Retrieves the agent with the given id.
+ * @property {function} makeAgent - Creates an agent in this agent manager.
  * @property {function} getAllAgents - Gets all agents in the manager.
  * @property {function} act - Calls act on all managed agents.
  */
@@ -13,66 +16,93 @@
  * @returns {AgentManager} An object with methods to manage agents.
  */
 export const createAgentManager = () => {
-    const agents = []
+	const agents = []
 
-    /**
-     * Adds an agent to the manager.
-     * @param {Object} agent - The agent to add.
-     */
-    const addAgent = (agent) => agents.push(agent)
+	/**
+	 * Adds an agent to the manager.
+	 * @param {Object} agent - The agent to add.
+	 */
+	const addAgent = (agent) => agents.push(agent)
 
-    /**
-     * Gets an agent from the manager.
-     * @param {number} agentId - The ID of the agent to get.
-     * @returns {Object} The agent with the specified ID.
-     */
-    const getAgent = (agentId) => agents[agentId]
+	/**
+	 * Gets an agent from the manager.
+	 * @param {number} agentId - The ID of the agent to get.
+	 * @returns {Object} The agent with the specified ID.
+	 */
+	const getAgent = (agentId) => agents[agentId]
 
-    /**
-     * Gets the ID for the next agent to be added.
-     * @returns {number} The ID for the next agent.
-     */
-    const getNextAgentId = () => agents.length
+	/**
+	 * Gets the ID for the next agent to be added.
+	 * @returns {number} The ID for the next agent.
+	 */
+	const getNextAgentId = () => agents.length
 
-    /**
-     * Gets all agents except for the one with the specified ID.
-     * @param {number} agentId - The ID of the agent to exclude.
-     * @returns {Array} An array of agents.
-     */
-    const getOtherAgents = (agentId) => {
-        return agents.filter((_, i) => i !== agentId)
-    }
+	/**
+	 * Gets all agents except for the one with the specified ID.
+	 * @param {number} agentId - The ID of the agent to exclude.
+	 * @returns {Array} An array of agents.
+	 */
+	const getOtherAgents = (agentId) => {
+		return agents.filter((_, i) => i !== agentId)
+	}
 
-    /**
-     * Creates a getter method to access the next added agent
-     * @returns A method that returns the next added agent
-     */
-    const createGetAgentMethod = () => {
-        const agentId = getNextAgentId()
+	/**
+	 * Creates a getter method to access the next added agent
+	 * @returns A method that returns the next added agent
+	 */
+	const createGetAgentMethod = () => {
+		const agentId = getNextAgentId()
 
-        return () => getAgent(agentId)
-    }
+		return () => getAgent(agentId)
+	}
 
-    /**
-     * Creates a method that gets all agents but the next one added
-     * @returns A method that gets all agents but the next one added
-     */
-    const createGetOtherAgentsMethod = () => {
-        const agentId = getNextAgentId()
+	/**
+	 * Creates a method that gets all agents but the next one added
+	 * @returns A method that gets all agents but the next one added
+	 */
+	const createGetOtherAgentsMethod = () => {
+		const agentId = getNextAgentId()
 
-        return () => getOtherAgents(agentId)
-    }
+		return () => getOtherAgents(agentId)
+	}
 
-    /**
-     * Gets all agents in the manager.
-     * @returns {Array} An array of agents.
-     */
-    const getAllAgents = () => agents
+	/**
+	 * Creates an agent in this agent manager
+	 * @param {OccupancyGrid} grid
+	 * @param {Position} startPosition
+	 * @param {Position} goalPosition
+     * @returns {Agent} the constructed agent
+	 */
+	const makeAgent = (grid, startPosition, goalPosition) => {
+		const agent = createSLAMAgent(
+			getNextAgentId(),
+			grid,
+			startPosition,
+			goalPosition,
+			createCommunicationSensor(
+				createGetAgentMethod(),
+				createGetOtherAgentsMethod()
+			),
+			VISIBLE_RADIUS,
+			COMMUNICATION_RADIUS
+		)
 
-    /**
-     * Calls act on all managed agents.
-     */
-    const act = () => agents.forEach(agent => agent.act())
+		addAgent(agent)
 
-    return { addAgent, createGetAgentMethod, createGetOtherAgentsMethod, getAllAgents, act }
+		return agent
+	}
+
+	/**
+	 * Gets all agents in the manager.
+	 * @returns {Array} An array of agents.
+	 */
+	const getAllAgents = () => agents
+
+	/**
+	 * Calls act on all managed agents.
+	 */
+	const act = () => agents.forEach((agent) => agent.act())
+
+	return { makeAgent, getAgent, getAllAgents, act }
 }
+

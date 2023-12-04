@@ -6,6 +6,7 @@ import { agentPeriodic } from "./agent-logic"
 /**
  * A SLAM agent that can navigate a maze-like environment and build an internal map of the environment.
  * @typedef {Object} Agent
+ * @property {function} getId - Returns the agent's id.
  * @property {function} getPosition - Returns the current position of the agent.
  * @property {function} setGoalPosition - Sets the goal position for the agent to navigate to.
  * @property {function} getGoalPosition - Returns the current goal position of the agent.
@@ -19,6 +20,7 @@ import { agentPeriodic } from "./agent-logic"
 
 /**
  * Creates a SLAM agent that can navigate a maze-like environment and build an internal map of the environment.
+ * @param {number} id
  * @param {OccupancyGrid} occupancyGrid
  * @param {Position} startPosition
  * @param {Position} goalPosition
@@ -28,6 +30,7 @@ import { agentPeriodic } from "./agent-logic"
  * @returns {Agent}
  */
 export const createSLAMAgent = (
+	id,
 	occupancyGrid,
 	startPosition,
 	goalPosition,
@@ -102,6 +105,7 @@ export const createSLAMAgent = (
 	}
 
 	return {
+		getId: () => id,
 		getPosition,
 		setGoalPosition,
 		getGoalPosition,

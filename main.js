@@ -93,33 +93,8 @@ const initAgents = () => {
 	agentManager = createAgentManager()
 
 	// Initialize the SLAM agents
-	agent1 = createSLAMAgent(
-		occupancyGrid,
-		createPosition(0, 0),
-		goal1,
-		createCommunicationSensor(
-			agentManager.createGetAgentMethod(),
-			agentManager.createGetOtherAgentsMethod()
-		),
-		VISIBLE_RADIUS,
-		COMMUNICATION_RADIUS
-	)
-
-	agentManager.addAgent(agent1)
-
-	agent2 = createSLAMAgent(
-		occupancyGrid,
-		createPosition(0, 0),
-		goal2,
-		createCommunicationSensor(
-			agentManager.createGetAgentMethod(),
-			agentManager.createGetOtherAgentsMethod()
-		),
-		VISIBLE_RADIUS,
-		COMMUNICATION_RADIUS
-	)
-
-	agentManager.addAgent(agent2)
+	agent1 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0), goal1)
+	agent2 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0), goal2)
 }
 
 const setup = (p) => {
@@ -191,12 +166,18 @@ const render = (p) => {
 		agentManager.act()
 
 		// Render the first agent's path
-		maps.primaryMap1.renderPathWithColor(agent1.getFuturePath(), CURRENT_PATH)
+		maps.primaryMap1.renderPathWithColor(
+			agent1.getFuturePath(),
+			CURRENT_PATH
+		)
 		maps.primaryMap1.renderPathWithColor(agent1.getAgentPath(), PAST_PATH)
 		maps.primaryMap1.renderAgents([agent1, agent2])
 
 		// Render the second agent's path
-		maps.primaryMap2.renderPathWithColor(agent2.getFuturePath(), CURRENT_PATH)
+		maps.primaryMap2.renderPathWithColor(
+			agent2.getFuturePath(),
+			CURRENT_PATH
+		)
 		maps.primaryMap2.renderPathWithColor(agent2.getAgentPath(), PAST_PATH)
 		maps.primaryMap2.renderAgents([agent2])
 
