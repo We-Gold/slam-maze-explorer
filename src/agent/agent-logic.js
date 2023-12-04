@@ -4,6 +4,7 @@
  * @property {boolean} hasNearbyAgents
  * @property {object[]} agentDetections
  * @property {boolean} isAtGoal
+ * @property {object} memory
  */
 
 /**

@@ -44,6 +44,8 @@ export const createSLAMAgent = (
 		visibleRadius
 	)
 
+	const interactionMemory = createAgentMemory()
+
 	// Store the path the agent has taken
 	let pastAgentPath = createPath([startPosition])
 
@@ -61,13 +63,31 @@ export const createSLAMAgent = (
 	}
 	const makeMemoryPacket = () => {
 		return {
+			source: id,
 			observations: environmentSensor.getAllObservations(),
 			position: getPosition(),
-			targetPosition: null,
+			targetPosition: getGoalPosition(),
 		}
 	}
 	const receiveMemory = (memoryPacket) => {
+		interactionMemory.recordInteraction(memoryPacket)
 		environmentSensor.receiveObservations(memoryPacket.observations)
+	}
+
+	const planPath = (goal) => {
+		const motionPlan = createMotionPlan(
+			getInternalMap(),
+			getPosition(),
+			goal
+		)
+
+		// Move to the next position in the path
+		environmentSensor.movePosition(motionPlan.nextPosition)
+
+		// Store the current point as part of the route
+		pastAgentPath.add(motionPlan.nextPosition)
+
+		futureAgentPath = motionPlan.futurePath
 	}
 
 	const act = () => {
@@ -78,23 +98,12 @@ export const createSLAMAgent = (
 			hasNearbyAgents: detections.length > 0,
 			agentDetections: detections,
 			isAtGoal: getPosition().equals(getGoalPosition()),
+			memory: interactionMemory,
 		}
 
 		const actions = {
 			followPlannedPath: () => {
-				const motionPlan = createMotionPlan(
-					getInternalMap(),
-					getPosition(),
-					getGoalPosition()
-				)
-
-				// Move to the next position in the path
-				environmentSensor.movePosition(motionPlan.nextPosition)
-
-				// Store the current point as part of the route
-				pastAgentPath.add(motionPlan.nextPosition)
-
-				futureAgentPath = motionPlan.futurePath
+				planPath(getGoalPosition())
 			},
 			shareMemoryWithAgent: (agent) => {
 				communicationSensor.shareMemoryWithAgent(agent)
@@ -115,6 +124,31 @@ export const createSLAMAgent = (
 		makeMemoryPacket,
 		receiveMemory,
 		act,
+	}
+}
+
+const createAgentMemory = () => {
+	const memory = {}
+
+	const recordInteraction = (memoryPacket) => {
+		memory[memoryPacket.source] = {
+			position: memoryPacket.position,
+			targetPosition: memoryPacket.targetPosition,
+		}
+	}
+
+	const getLastPositionOfAgent = (agentId) => {
+		return memory[agentId].position
+	}
+
+	const getTargetPositionOfAgent = (agentId) => {
+		return memory[agentId].targetPosition
+	}
+
+	return {
+		recordInteraction,
+		getLastPositionOfAgent,
+		getTargetPositionOfAgent,
 	}
 }
 
