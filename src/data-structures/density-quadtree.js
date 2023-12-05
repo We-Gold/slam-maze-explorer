@@ -1,3 +1,6 @@
+const DENSITY_THRESHOLD = 25
+const MAX_DEPTH = 5
+
 /**
  * Creates a quadtree for a grid-based environment that
  * is based on density, and doesn't actually track specific points.
@@ -5,11 +8,19 @@
  * @param {number} cols
  * @param {number} [densityThreshold]
  */
-export const createDensityQuadtree = (rows, cols, densityThreshold = 25) => {
-	const root = makeQuadtreeNode(0, 0, rows - 1, 0, cols - 1, densityThreshold)
+export const createDensityQuadtree = (rows, cols) => {
+	const root = makeQuadtreeNode(
+		0,
+		0,
+		rows - 1,
+		0,
+		cols - 1,
+		DENSITY_THRESHOLD,
+		MAX_DEPTH
+	)
 
 	const addPosition = (position) => root.addPosition(position)
-    const findMinDensity = () => root.findMinDensity()
+	const findMinDensity = () => root.findMinDensity()
 
 	return { addPosition, findMinDensity }
 }
@@ -20,7 +31,8 @@ const makeQuadtreeNode = (
 	endRow,
 	startCol,
 	endCol,
-	densityThreshold
+	densityThreshold,
+	depthRemaining
 ) => {
 	let density = totalDensity
 	let topLeft, topRight, bottomLeft, bottomRight
@@ -37,28 +49,32 @@ const makeQuadtreeNode = (
 			startRow,
 			midRow,
 			startCol,
-			midCol
+			midCol,
+			depthRemaining - 1
 		)
 		topRight = makeQuadtreeNode(
 			avgDensity,
 			startRow,
 			midRow,
 			midCol,
-			endCol
+			endCol,
+			depthRemaining - 1
 		)
 		bottomLeft = makeQuadtreeNode(
 			avgDensity,
 			midRow,
 			endRow,
 			startCol,
-			midCol
+			midCol,
+			depthRemaining - 1
 		)
 		bottomRight = makeQuadtreeNode(
 			avgDensity,
 			midRow,
 			endRow,
 			midCol,
-			endCol
+			endCol,
+			depthRemaining - 1
 		)
 
 		isSplit = true
@@ -70,9 +86,9 @@ const makeQuadtreeNode = (
 			density++
 
 			// Split if the area is dense enough
-			if (density > densityThreshold) splitNode()
+			if (density > densityThreshold && depthRemaining > 0) splitNode()
 
-            return
+			return
 		}
 
 		const isTop = position.getRow() <= midRow
@@ -97,18 +113,19 @@ const makeQuadtreeNode = (
 
 		let min = topLeft.findMinDensity()
 
-        // Find the region with the least density
+		// Find the region with the least density
 		for (const quad of quadrants) {
 			const _min = quad.findMinDensity()
 
 			if (_min.density < min.density) min = _min
 		}
 
-        return min
+		return min
 	}
 
 	// Split if the area is dense enough
-	if (density > densityThreshold && !isSplit) splitNode()
+	if (density > densityThreshold && !isSplit && depthRemaining > 0)
+		splitNode()
 
 	return { addPosition, findMinDensity }
 }
