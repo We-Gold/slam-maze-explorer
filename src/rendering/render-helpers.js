@@ -1,5 +1,5 @@
 import { helpers } from "algernon-js"
-import { AGENT, BACKGROUND, WALL } from "../constants"
+import { AGENT, BACKGROUND, GOAL, WALL } from "../constants"
 
 /**
  * Render a maze within the given region.
@@ -111,6 +111,17 @@ export const renderAgent = (p, position, dimensions) => {
 
 	p.noStroke()
 	p.fill(AGENT.r, AGENT.g, AGENT.b)
+
+	const [row, col] = position.getCoordinate()
+
+	p.circle(x + col * w + w / 2, y + row * h + h / 2, w / 1.5)
+}
+
+export const renderGoal = (p, position, dimensions) => {
+	const [, , w, h, x, y] = dimensions
+
+	p.noStroke()
+	p.fill(GOAL.r, GOAL.g, GOAL.b)
 
 	const [row, col] = position.getCoordinate()
 

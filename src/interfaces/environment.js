@@ -101,7 +101,7 @@ export const createEnvironmentSensor = (
  * @param {number} endCol
  * @returns The randomly chosen position
  */
-const sampleRegion = (startRow, endRow, startCol, endCol) => {
+export const sampleRegion = (startRow, endRow, startCol, endCol) => {
 	const randomRow =
 		Math.floor(Math.random() * (endRow - startRow + 1)) + startRow
 	const randomCol =

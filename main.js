@@ -12,18 +12,15 @@ import {
 } from "algernon-js"
 import {
 	BACKGROUND,
-	COMMUNICATION_RADIUS,
 	CURRENT_PATH,
 	PAST_PATH,
 	PERFECT_PATH,
-	VISIBLE_RADIUS,
 	mazeSize,
 } from "./src/constants"
-import { createSLAMAgent } from "./src/agent/slam-agent"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
-import { createCommunicationSensor } from "./src/interfaces/environment"
+import { sampleRegion } from "./src/interfaces/environment"
 import { createAgentManager } from "./src/agent/agent-manager"
 import { createMazeRenderer } from "./src/rendering/renderer"
 
@@ -36,8 +33,7 @@ let perfectPath2
 let agent1
 let agent2
 
-let goal1
-let goal2
+let goal
 
 let agentManager
 
@@ -66,21 +62,19 @@ const initializeMaze = () => {
 	fillGrid(completeMap, 0.1)
 	degradeGrid(completeMap, 0.3)
 
-	goal1 = createPosition(0, completeMap[0].length - 1)
-	goal2 = createPosition(completeMap.length - 1, 0)
+	goal = sampleRegion(0, completeMap.length, 0, completeMap[0].length)
 
 	// Since we fill the grid randomly, ensure that the start and goal are open
 	completeMap[0][0] = false
-	completeMap[goal1.getRow()][goal1.getCol()] = false
-	completeMap[goal2.getRow()][goal2.getCol()] = false
+	completeMap[goal.getRow()][goal.getCol()] = false
 
 	// Find the optimal solution (not currently optimal)
 	perfectPath1 = convertCoordsToPath(
-		solveAStarGrid(completeMap, [0, 0], goal1.getCoordinate())
+		solveAStarGrid(completeMap, [0, 0], goal.getCoordinate())
 	)
 
 	perfectPath2 = convertCoordsToPath(
-		solveAStarGrid(completeMap, [0, 0], goal2.getCoordinate())
+		solveAStarGrid(completeMap, [0, 0], goal.getCoordinate())
 	)
 
 	// Recursively regenerate the maze if there is no valid path
@@ -93,8 +87,8 @@ const initAgents = () => {
 	agentManager = createAgentManager()
 
 	// Initialize the SLAM agents
-	agent1 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0), goal1)
-	agent2 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0), goal2)
+	agent1 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	agent2 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 }
 
 const setup = (p) => {
@@ -171,7 +165,8 @@ const render = (p) => {
 			CURRENT_PATH
 		)
 		maps.primaryMap1.renderPathWithColor(agent1.getAgentPath(), PAST_PATH)
-		maps.primaryMap1.renderAgents([agent1, agent2])
+		maps.primaryMap1.renderAgents([agent1])
+		maps.primaryMap1.renderGoal(goal)
 
 		// Render the second agent's path
 		maps.primaryMap2.renderPathWithColor(
@@ -180,10 +175,12 @@ const render = (p) => {
 		)
 		maps.primaryMap2.renderPathWithColor(agent2.getAgentPath(), PAST_PATH)
 		maps.primaryMap2.renderAgents([agent2])
+		maps.primaryMap2.renderGoal(goal)
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
+		maps.editingMap.renderGoal(goal)
 	}
 }
 

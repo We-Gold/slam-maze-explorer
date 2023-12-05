@@ -23,7 +23,6 @@ import { agentPeriodic } from "./agent-logic"
  * @param {number} id
  * @param {OccupancyGrid} occupancyGrid
  * @param {Position} startPosition
- * @param {Position} goalPosition
  * @param {CommunicationSensor} communicationSensor
  * @param {number} visibleRadius
  * @param {number} communicationRadius
@@ -33,7 +32,6 @@ export const createSLAMAgent = (
 	id,
 	occupancyGrid,
 	startPosition,
-	goalPosition,
 	communicationSensor,
 	visibleRadius,
 	communicationRadius
@@ -45,6 +43,9 @@ export const createSLAMAgent = (
 	)
 
 	const interactionMemory = createAgentMemory()
+
+	// Make a guess at the goal location
+	let goalPosition = environmentSensor.sampleLowestDensity()
 
 	// Store the path the agent has taken
 	let pastAgentPath = createPath([startPosition])

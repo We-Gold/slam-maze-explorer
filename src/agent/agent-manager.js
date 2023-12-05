@@ -73,12 +73,11 @@ export const createAgentManager = () => {
 	 * @param {Position} goalPosition
      * @returns {Agent} the constructed agent
 	 */
-	const makeAgent = (grid, startPosition, goalPosition) => {
+	const makeAgent = (grid, startPosition) => {
 		const agent = createSLAMAgent(
 			getNextAgentId(),
 			grid,
 			startPosition,
-			goalPosition,
 			createCommunicationSensor(
 				createGetAgentMethod(),
 				createGetOtherAgentsMethod()
