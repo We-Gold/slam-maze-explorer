@@ -98,6 +98,7 @@ const setup = (p) => {
 	initializeMaze()
 
 	occupancyGrid = createOccupancyGrid(completeMap)
+	occupancyGrid.setEndPosition(end)
 
 	initAgents()
 

@@ -6,6 +6,7 @@
  * @property {boolean} isAtTarget
  * @property {object} memory
  * @property {boolean} targetReachable
+ * @property {boolean} foundEnd
  */
 
 /**
@@ -14,6 +15,7 @@
  * @property {() => void} followPlannedPath
  * @property {(agent: import("./slam-agent").Agent) => void} shareMemoryWithAgent
  * @property {() => void} sampleNewTarget
+ * @property {() => void} targetEndPosition
  */
 
 /**
@@ -22,8 +24,12 @@
  * @param {AgentActions} actions
  */
 export const agentPeriodic = (inputs, actions) => {
+	// If we have found the end, stay there
+	if (inputs.foundEnd) {
+		actions.targetEndPosition()
+	}
 	// Take no actions if we have reached the target
-	if (inputs.isAtTarget || !inputs.targetReachable) {
+	else if (inputs.isAtTarget || !inputs.targetReachable) {
 		actions.sampleNewTarget()
 	}
 

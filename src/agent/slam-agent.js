@@ -83,7 +83,10 @@ export const createSLAMAgent = (
 		)
 
 		// Cannot do not move if no path exists to the target
-		if (motionPlan.nextPosition == null || motionPlan.nextPosition == undefined) {
+		if (
+			motionPlan.nextPosition == null ||
+			motionPlan.nextPosition == undefined
+		) {
 			return
 		}
 
@@ -104,7 +107,10 @@ export const createSLAMAgent = (
 		)
 
 		// Cannot do not move if no path exists to the target
-		if (motionPlan.nextPosition == null || motionPlan.nextPosition == undefined) {
+		if (
+			motionPlan.nextPosition == null ||
+			motionPlan.nextPosition == undefined
+		) {
 			return false
 		}
 
@@ -120,7 +126,8 @@ export const createSLAMAgent = (
 			agentDetections: detections,
 			isAtTarget: getPosition().equals(getTargetPosition()),
 			memory: interactionMemory,
-			targetReachable: pathExistsToPosition(getTargetPosition())
+			targetReachable: pathExistsToPosition(getTargetPosition()),
+			foundEnd: environmentSensor.foundEndPosition(),
 		}
 
 		const actions = {
@@ -129,6 +136,10 @@ export const createSLAMAgent = (
 			},
 			sampleNewTarget: () => {
 				setTargetPosition(environmentSensor.sampleLowestDensity())
+			},
+			targetEndPosition: () => {
+				const end = environmentSensor.getEndPosition()
+				if (end !== null) setTargetPosition(end)
 			},
 			shareMemoryWithAgent: (agent) => {
 				communicationSensor.shareMemoryWithAgent(agent)

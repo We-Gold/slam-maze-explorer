@@ -10,6 +10,8 @@ import { createEmptyOccupancyGrid } from "./grid"
  * @property {function(): OccupancyGrid} getInternalMap - Returns the internal map of the environment.
  * @property {function(): Observation[]} getAllObservations - Returns all observations made by the sensor.
  * @property {function} sampleLowestDensity - Returns a random point from the least explored region.
+ * @property {function} foundEndPosition - Returns whether or not the end position has been located.
+ * @property {function} getEndPosition - Returns the end position or null if it hasn't been found.
  */
 
 /**
@@ -83,13 +85,18 @@ export const createEnvironmentSensor = (
 		return sampleRegion(startRow, endRow, startCol, endCol)
 	}
 
+	const getEndPosition = () => internalMap.getEndPosition()
+	const foundEndPosition = () => getEndPosition() !== null
+
 	return {
 		getPosition,
 		movePosition,
 		receiveObservations,
 		getInternalMap,
 		getAllObservations,
-		sampleLowestDensity
+		sampleLowestDensity,
+		foundEndPosition,
+		getEndPosition,
 	}
 }
 

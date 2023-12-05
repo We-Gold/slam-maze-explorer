@@ -5,10 +5,13 @@ import { createPosition } from "./components"
  * @typedef {Object} Observation
  * @property {Position} index - The index of the observation
  * @property {boolean} value - The value of the observation
+ * @property {boolean} [isEnd] - Whether or not the observation is the end position
  */
 
 /**
  * @typedef {Object} OccupancyGrid
+ * @property {function} setEndPosition - Sets the end position of the environment
+ * @property {function} getEndPosition - Returns the end position of the environment or null
  * @property {function(): boolean[][]} getGrid - Returns the internal grid
  * @property {function(): [number, number]} getDimensions - Returns the dimensions of the grid
  * @property {function(Position, number): Observation[]} getRectObservation - Returns a rectangular observation from the grid
@@ -33,6 +36,12 @@ export const createOccupancyGrid = (sourceGrid) => {
 	const getGrid = () => sourceGrid
 	const getDimensions = () => [rows, cols]
 
+	// Enable storing the end position of the environment
+	let endPosition = null
+
+	const setEndPosition = (position) => (endPosition = position)
+	const getEndPosition = () => endPosition
+
 	/**
 	 * Returns a rectangular observation from the given occupancy grid
 	 * @param {Position} position
@@ -44,6 +53,17 @@ export const createOccupancyGrid = (sourceGrid) => {
 
 		// Each observation has an index and a value
 		const observations = []
+
+		// If this region contains the goal, send it as an observation
+		if (rectContainsPosition(position, radius, endPosition))
+			observations.push({
+				index: createPosition(
+					endPosition.getRow(),
+					endPosition.getCol()
+				),
+				value: false,
+				isEnd: true,
+			})
 
 		// Add all values within the rectangle to the observation
 		for (let row = currentRow - radius; row < currentRow + radius; row++) {
@@ -71,6 +91,17 @@ export const createOccupancyGrid = (sourceGrid) => {
 		// Each observation has an index and a value
 		const observations = []
 
+		// Add the end position to the set of observations if known
+		if (endPosition !== null)
+			observations.push({
+				index: createPosition(
+					endPosition.getRow(),
+					endPosition.getCol()
+				),
+				value: false,
+				isEnd: true,
+			})
+
 		// Add all values within the rectangle to the observation
 		for (let row = 0; row < rows; row++) {
 			for (let col = 0; col < cols; col++) {
@@ -91,6 +122,9 @@ export const createOccupancyGrid = (sourceGrid) => {
 	 * @param {Observation[]} observations a list of observations
 	 */
 	const updateWithObservations = (observations) => {
+		// Store the end position if it comes in as an observation
+		if (observations?.[0]?.isEnd) setEndPosition(observations[0].index)
+
 		for (const { index, value } of observations) {
 			sourceGrid[index.getRow()][index.getCol()] = value
 		}
@@ -102,20 +136,31 @@ export const createOccupancyGrid = (sourceGrid) => {
 	 * @returns A list of new observations
 	 */
 	const filterNewObservations = (observations) => {
-		return observations.filter(
-			({ index, value }) =>
-				sourceGrid[index.getRow()][index.getCol()] !== value
-		)
+		return observations.filter(({ index, value, isEnd }) => {
+			const _isEnd = isEnd !== undefined && isEnd
+			return (
+				_isEnd || sourceGrid[index.getRow()][index.getCol()] !== value
+			)
+		})
 	}
 
 	return {
+		setEndPosition,
+		getEndPosition,
 		getGrid,
 		getDimensions,
 		getRectObservation,
 		getAllObservations,
 		updateWithObservations,
-		filterNewObservations
+		filterNewObservations,
 	}
+}
+
+const rectContainsPosition = (centerPos, radius, otherPos) => {
+	const rowDist = Math.abs(centerPos.getRow() - otherPos.getRow())
+	const colDist = Math.abs(centerPos.getCol() - otherPos.getCol())
+
+	return rowDist <= radius && colDist <= radius
 }
 
 /**
