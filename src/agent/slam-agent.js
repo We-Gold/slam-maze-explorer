@@ -74,7 +74,7 @@ export const createSLAMAgent = (
 		environmentSensor.receiveObservations(memoryPacket.observations)
 	}
 
-	const planPath = (goal) => {
+	const followPathToGoal = (goal) => {
 		const motionPlan = createMotionPlan(
 			getInternalMap(),
 			getPosition(),
@@ -103,7 +103,7 @@ export const createSLAMAgent = (
 
 		const actions = {
 			followPlannedPath: () => {
-				planPath(getGoalPosition())
+				followPathToGoal(getGoalPosition())
 			},
 			shareMemoryWithAgent: (agent) => {
 				communicationSensor.shareMemoryWithAgent(agent)

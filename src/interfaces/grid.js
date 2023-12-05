@@ -14,6 +14,7 @@ import { createPosition } from "./components"
  * @property {function(Position, number): Observation[]} getRectObservation - Returns a rectangular observation from the grid
  * @property {function(): Observation[]} getAllObservations - Returns a list of all observations in the grid
  * @property {function(Observation[]): void} updateWithObservations - Modifies the grid based on a set of observations
+ * @property {function} filterNewObservations - Returns of only the observations that are new
  */
 
 /**
@@ -95,12 +96,25 @@ export const createOccupancyGrid = (sourceGrid) => {
 		}
 	}
 
+	/**
+	 * Returns a list of only the observations that are new.
+	 * @param {Observation[]} observations a list of observations
+	 * @returns A list of new observations
+	 */
+	const filterNewObservations = (observations) => {
+		return observations.filter(
+			({ index, value }) =>
+				sourceGrid[index.getRow()][index.getCol()] !== value
+		)
+	}
+
 	return {
 		getGrid,
 		getDimensions,
 		getRectObservation,
 		getAllObservations,
 		updateWithObservations,
+		filterNewObservations
 	}
 }
 

@@ -1,3 +1,5 @@
+import { createDensityQuadtree } from "../data-structures/density-quadtree"
+import { createPosition } from "./components"
 import { createEmptyOccupancyGrid } from "./grid"
 
 /**
@@ -7,6 +9,7 @@ import { createEmptyOccupancyGrid } from "./grid"
  * @property {function(observations: Observation[]): void} receiveObservations - Updates the internal map with the given observations.
  * @property {function(): OccupancyGrid} getInternalMap - Returns the internal map of the environment.
  * @property {function(): Observation[]} getAllObservations - Returns all observations made by the sensor.
+ * @property {function} sampleLowestDensity - Returns a random point from the least explored region.
  */
 
 /**
@@ -28,8 +31,23 @@ export const createEnvironmentSensor = (
 	const [rows, cols] = occupancyGrid.getDimensions()
 	const internalMap = createEmptyOccupancyGrid(rows, cols)
 
-	const receiveObservations = (observations) =>
-		internalMap.updateWithObservations(observations)
+	// Create a density quadtree to track the least dense regions of the map,
+	// the most fit for exploration
+	const densityQuadtree = createDensityQuadtree(rows, cols)
+
+	const receiveObservations = (observations) => {
+		// Filter the observations (not necessary for the
+		// internal map update but for the quadtree).
+		const newObservations = internalMap.filterNewObservations(observations)
+
+		// Update the internal map with new observations
+		internalMap.updateWithObservations(newObservations)
+
+		// Update the density quadtree
+		newObservations.forEach(({ index }) =>
+			densityQuadtree.addPosition(index)
+		)
+	}
 
 	// Update the internal map by observing the surrounding area
 	const updateLocalObservation = () => {
@@ -57,13 +75,38 @@ export const createEnvironmentSensor = (
 	const getInternalMap = () => internalMap
 	const getAllObservations = () => internalMap.getAllObservations()
 
+	const sampleLowestDensity = () => {
+		const lowestDensityRegion = densityQuadtree.findMinDensity()
+
+		const { startRow, endRow, startCol, endCol } = lowestDensityRegion.range
+
+		return sampleRegion(startRow, endRow, startCol, endCol)
+	}
+
 	return {
 		getPosition,
 		movePosition,
 		receiveObservations,
 		getInternalMap,
 		getAllObservations,
+		sampleLowestDensity
 	}
+}
+
+/**
+ * Chooses a random position from within the given region.
+ * @param {number} startRow
+ * @param {number} endRow
+ * @param {number} startCol
+ * @param {number} endCol
+ * @returns The randomly chosen position
+ */
+const sampleRegion = (startRow, endRow, startCol, endCol) => {
+	const randomRow =
+		Math.floor(Math.random() * (endRow - startRow + 1)) + startRow
+	const randomCol =
+		Math.floor(Math.random() * (endCol - startCol + 1)) + startCol
+	return createPosition(randomRow, randomCol)
 }
 
 /**
