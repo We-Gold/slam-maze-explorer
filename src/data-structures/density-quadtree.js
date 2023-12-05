@@ -26,8 +26,8 @@ const makeQuadtreeNode = (
 	let topLeft, topRight, bottomLeft, bottomRight
 	let isSplit = false
 
-	const midRow = startRow + (endRow - startRow) / 2
-	const midCol = startCol + (endCol - startCol) / 2
+	const midRow = Math.floor(startRow + (endRow - startRow) / 2)
+	const midCol = Math.floor(startCol + (endCol - startCol) / 2)
 
 	const splitNode = () => {
 		const avgDensity = density / 4

@@ -5,6 +5,7 @@
  * @property {object[]} agentDetections
  * @property {boolean} isAtGoal
  * @property {object} memory
+ * @property {boolean} goalReachable
  */
 
 /**
@@ -12,6 +13,7 @@
  * @typedef {Object} AgentActions
  * @property {() => void} followPlannedPath
  * @property {(agent: import("./slam-agent").Agent) => void} shareMemoryWithAgent
+ * @property {() => void} sampleNewTarget
  */
 
 /**
@@ -21,7 +23,9 @@
  */
 export const agentPeriodic = (inputs, actions) => {
 	// Take no actions if we have reached the goal
-	if (inputs.isAtGoal) return
+	if (inputs.isAtGoal || !inputs.goalReachable) {
+		actions.sampleNewTarget()
+	}
 
 	if (inputs.hasNearbyAgents)
 		inputs.agentDetections.forEach(({agent}) =>
