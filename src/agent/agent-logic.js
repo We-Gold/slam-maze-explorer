@@ -3,9 +3,9 @@
  * @typedef {Object} AgentInputs
  * @property {boolean} hasNearbyAgents
  * @property {object[]} agentDetections
- * @property {boolean} isAtGoal
+ * @property {boolean} isAtTarget
  * @property {object} memory
- * @property {boolean} goalReachable
+ * @property {boolean} targetReachable
  */
 
 /**
@@ -22,8 +22,8 @@
  * @param {AgentActions} actions
  */
 export const agentPeriodic = (inputs, actions) => {
-	// Take no actions if we have reached the goal
-	if (inputs.isAtGoal || !inputs.goalReachable) {
+	// Take no actions if we have reached the target
+	if (inputs.isAtTarget || !inputs.targetReachable) {
 		actions.sampleNewTarget()
 	}
 

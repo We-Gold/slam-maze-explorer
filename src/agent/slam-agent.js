@@ -8,8 +8,8 @@ import { agentPeriodic } from "./agent-logic"
  * @typedef {Object} Agent
  * @property {function} getId - Returns the agent's id.
  * @property {function} getPosition - Returns the current position of the agent.
- * @property {function} setGoalPosition - Sets the goal position for the agent to navigate to.
- * @property {function} getGoalPosition - Returns the current goal position of the agent.
+ * @property {function} setTargetPosition - Sets the target position for the agent to navigate to.
+ * @property {function} getTargetPosition - Returns the current target position of the agent.
  * @property {function} getAgentPath - Returns the path the agent has taken so far.
  * @property {function} getFuturePath - Returns the path the agent plans to take.
  * @property {function} getInternalMap - Returns the internal map of the environment built by the agent.
@@ -44,8 +44,8 @@ export const createSLAMAgent = (
 
 	const interactionMemory = createAgentMemory()
 
-	// Make a guess at the goal location
-	let goalPosition = environmentSensor.sampleLowestDensity()
+	// Make a guess at the target location
+	let targetPosition = environmentSensor.sampleLowestDensity()
 
 	// Store the path the agent has taken
 	let pastAgentPath = createPath([startPosition])
@@ -57,17 +57,17 @@ export const createSLAMAgent = (
 	const getFuturePath = () => futureAgentPath
 	const getInternalMap = () => environmentSensor.getInternalMap()
 	const getPosition = () => environmentSensor.getPosition()
-	const getGoalPosition = () => goalPosition
-	const setGoalPosition = (updatedGoal) => {
-		// Update the goal position
-		goalPosition = updatedGoal
+	const getTargetPosition = () => targetPosition
+	const setTargetPosition = (updatedTarget) => {
+		// Update the target position
+		targetPosition = updatedTarget
 	}
 	const makeMemoryPacket = () => {
 		return {
 			source: id,
 			observations: environmentSensor.getAllObservations(),
 			position: getPosition(),
-			targetPosition: getGoalPosition(),
+			targetPosition: getTargetPosition(),
 		}
 	}
 	const receiveMemory = (memoryPacket) => {
@@ -75,14 +75,14 @@ export const createSLAMAgent = (
 		environmentSensor.receiveObservations(memoryPacket.observations)
 	}
 
-	const followPathToGoal = (goal) => {
+	const followPathToTarget = (target) => {
 		const motionPlan = createMotionPlan(
 			getInternalMap(),
 			getPosition(),
-			goal
+			target
 		)
 
-		// Cannot do not move if no path exists to the goal
+		// Cannot do not move if no path exists to the target
 		if (motionPlan.nextPosition == null || motionPlan.nextPosition == undefined) {
 			return
 		}
@@ -103,7 +103,7 @@ export const createSLAMAgent = (
 			position
 		)
 
-		// Cannot do not move if no path exists to the goal
+		// Cannot do not move if no path exists to the target
 		if (motionPlan.nextPosition == null || motionPlan.nextPosition == undefined) {
 			return false
 		}
@@ -118,17 +118,17 @@ export const createSLAMAgent = (
 		const inputs = {
 			hasNearbyAgents: detections.length > 0,
 			agentDetections: detections,
-			isAtGoal: getPosition().equals(getGoalPosition()),
+			isAtTarget: getPosition().equals(getTargetPosition()),
 			memory: interactionMemory,
-			goalReachable: pathExistsToPosition(getGoalPosition())
+			targetReachable: pathExistsToPosition(getTargetPosition())
 		}
 
 		const actions = {
 			followPlannedPath: () => {
-				followPathToGoal(getGoalPosition())
+				followPathToTarget(getTargetPosition())
 			},
 			sampleNewTarget: () => {
-				setGoalPosition(environmentSensor.sampleLowestDensity())
+				setTargetPosition(environmentSensor.sampleLowestDensity())
 			},
 			shareMemoryWithAgent: (agent) => {
 				communicationSensor.shareMemoryWithAgent(agent)
@@ -141,8 +141,8 @@ export const createSLAMAgent = (
 	return {
 		getId: () => id,
 		getPosition,
-		setGoalPosition,
-		getGoalPosition,
+		setTargetPosition,
+		getTargetPosition,
 		getAgentPath,
 		getFuturePath,
 		getInternalMap,

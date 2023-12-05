@@ -1,4 +1,4 @@
-import { renderAgent, renderGridMaze, renderPath, renderGoal as renderGoalPosition } from "./render-helpers"
+import { renderAgent, renderGridMaze, renderPath, renderEnd as renderEndPosition } from "./render-helpers"
 
 /**
  * Creates a renderer for one maze
@@ -14,14 +14,14 @@ export const createMazeRenderer = (p, dimensions) => {
 			renderAgent(p, agent.getPosition(), dimensions)
 		)
 
-    const renderGoal = (position) => 
-        renderGoalPosition(p, position, dimensions)
+    const renderEnd = (position) => 
+        renderEndPosition(p, position, dimensions)
 
 	const renderPathWithColor = (path, color) =>
 		renderPath(p, path, color, dimensions)
 
     const getDimensions = () => dimensions
 
-	return { renderMaze, renderAgents, renderGoal, renderPathWithColor, getDimensions }
+	return { renderMaze, renderAgents, renderEnd, renderPathWithColor, getDimensions }
 }
 

@@ -33,7 +33,7 @@ let perfectPath2
 let agent1
 let agent2
 
-let goal
+let end
 
 let agentManager
 
@@ -62,19 +62,19 @@ const initializeMaze = () => {
 	fillGrid(completeMap, 0.1)
 	degradeGrid(completeMap, 0.3)
 
-	goal = sampleRegion(0, completeMap.length, 0, completeMap[0].length)
+	end = sampleRegion(0, completeMap.length, 0, completeMap[0].length)
 
-	// Since we fill the grid randomly, ensure that the start and goal are open
+	// Since we fill the grid randomly, ensure that the start and end are open
 	completeMap[0][0] = false
-	completeMap[goal.getRow()][goal.getCol()] = false
+	completeMap[end.getRow()][end.getCol()] = false
 
 	// Find the optimal solution (not currently optimal)
 	perfectPath1 = convertCoordsToPath(
-		solveAStarGrid(completeMap, [0, 0], goal.getCoordinate())
+		solveAStarGrid(completeMap, [0, 0], end.getCoordinate())
 	)
 
 	perfectPath2 = convertCoordsToPath(
-		solveAStarGrid(completeMap, [0, 0], goal.getCoordinate())
+		solveAStarGrid(completeMap, [0, 0], end.getCoordinate())
 	)
 
 	// Recursively regenerate the maze if there is no valid path
@@ -166,7 +166,7 @@ const render = (p) => {
 		)
 		maps.primaryMap1.renderPathWithColor(agent1.getAgentPath(), PAST_PATH)
 		maps.primaryMap1.renderAgents([agent1])
-		maps.primaryMap1.renderGoal(goal)
+		maps.primaryMap1.renderEnd(end)
 
 		// Render the second agent's path
 		maps.primaryMap2.renderPathWithColor(
@@ -175,12 +175,12 @@ const render = (p) => {
 		)
 		maps.primaryMap2.renderPathWithColor(agent2.getAgentPath(), PAST_PATH)
 		maps.primaryMap2.renderAgents([agent2])
-		maps.primaryMap2.renderGoal(goal)
+		maps.primaryMap2.renderEnd(end)
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
-		maps.editingMap.renderGoal(goal)
+		maps.editingMap.renderEnd(end)
 	}
 }
 

@@ -70,7 +70,6 @@ export const createAgentManager = () => {
 	 * Creates an agent in this agent manager
 	 * @param {OccupancyGrid} grid
 	 * @param {Position} startPosition
-	 * @param {Position} goalPosition
      * @returns {Agent} the constructed agent
 	 */
 	const makeAgent = (grid, startPosition) => {

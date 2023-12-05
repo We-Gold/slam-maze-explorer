@@ -17,26 +17,26 @@ export const convertCoordsToPath = (indexPath) =>
  */
 
 /**
- * Creates a motion plan based on a given map, a current location, and a goal location.
+ * Creates a motion plan based on a given map, a current location, and a target location.
  * @param {OccupancyGrid} occupancyGrid
  * @param {Position} currentPosition
- * @param {Position} goalPosition
+ * @param {Position} targetPosition
  * @returns {MotionPlan} an object containing the next position in the path and the complete future plan
  */
 export const createMotionPlan = (
 	occupancyGrid,
 	currentPosition,
-	goalPosition
+	targetPosition
 ) => {
 	// Avoid expensive calculations when no motion is necessary
-	if (currentPosition.equals(goalPosition))
+	if (currentPosition.equals(targetPosition))
 		return { nextPosition: currentPosition, futurePath: createPath([]) }
 
 	const [_, nextPosition, ...futurePath] = convertCoordsToPath(
 		solveAStarGrid(
 			occupancyGrid.getGrid(),
 			currentPosition.getCoordinate(),
-			goalPosition.getCoordinate(),
+			targetPosition.getCoordinate(),
 			AStarHeuristic.manhattan
 		)
 	).getPositions()
