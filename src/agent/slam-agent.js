@@ -1,4 +1,4 @@
-import { createPath } from "../interfaces/components"
+import { createPath, manhattanDistance } from "../interfaces/components"
 import { createEnvironmentSensor } from "../interfaces/environment"
 import { createMotionPlan } from "../interfaces/motion-planner"
 import { agentPeriodic } from "./agent-logic"
@@ -68,6 +68,7 @@ export const createSLAMAgent = (
 			observations: environmentSensor.getAllObservations(),
 			position: getPosition(),
 			targetPosition: getTargetPosition(),
+			foundEnd: environmentSensor.foundEndPosition(),
 		}
 	}
 	const receiveMemory = (memoryPacket) => {
@@ -121,6 +122,11 @@ export const createSLAMAgent = (
 		const detections =
 			communicationSensor.detectAgentsWithinRadius(communicationRadius)
 
+		const nearestAgent = interactionMemory.findClosestAgent(
+			getPosition(),
+			false
+		)
+
 		const inputs = {
 			hasNearbyAgents: detections.length > 0,
 			agentDetections: detections,
@@ -128,6 +134,7 @@ export const createSLAMAgent = (
 			memory: interactionMemory,
 			targetReachable: pathExistsToPosition(getTargetPosition()),
 			foundEnd: environmentSensor.foundEndPosition(),
+			notAllAgentsKnowEnd: nearestAgent !== null,
 		}
 
 		const actions = {
@@ -140,6 +147,23 @@ export const createSLAMAgent = (
 			targetEndPosition: () => {
 				const end = environmentSensor.getEndPosition()
 				if (end !== null) setTargetPosition(end)
+			},
+			targetNearestAgent: () => {
+				if (nearestAgent === null) return
+
+				const predictedPosition =
+					interactionMemory.getPredictedPosition(nearestAgent)
+
+				// Mark the agent's position as visited if we have arrived
+				if (
+					predictedPosition.equals(getPosition()) ||
+					!pathExistsToPosition(predictedPosition)
+				) {
+					interactionMemory.visitAgentPosition(nearestAgent)
+				}
+
+				// Search for the agent where we expect them to be
+				setTargetPosition(predictedPosition)
 			},
 			shareMemoryWithAgent: (agent) => {
 				communicationSensor.shareMemoryWithAgent(agent)
@@ -167,24 +191,80 @@ const createAgentMemory = () => {
 	const memory = {}
 
 	const recordInteraction = (memoryPacket) => {
-		memory[memoryPacket.source] = {
-			position: memoryPacket.position,
-			targetPosition: memoryPacket.targetPosition,
+		const { source, position, targetPosition, foundEnd } = memoryPacket
+
+		// Merge the current memory with new information
+		memory[source] = {
+			...memory[source],
+			...{
+				position,
+				targetPosition,
+				foundEnd,
+			},
 		}
 	}
 
-	const getLastPositionOfAgent = (agentId) => {
-		return memory[agentId].position
+	const getLastPositionOfAgent = (agentId) => memory[agentId].position
+	const getTargetPositionOfAgent = (agentId) => memory[agentId].targetPosition
+
+	/**
+	 * Predicts the location of the agent based on how much we have looked for it,
+	 * or returns null if we have already checked all locations
+	 */
+	const getPredictedPosition = (agentId) => {
+		if (memory[agentId]?.visitedCurrent) return null
+		else if (memory[agentId]?.visitedTarget)
+			return getLastPositionOfAgent(agentId)
+		else return getTargetPositionOfAgent(agentId)
 	}
 
-	const getTargetPositionOfAgent = (agentId) => {
-		return memory[agentId].targetPosition
+	/**
+	 * Records a visit to one of the agent's known positions
+	 */
+	const visitAgentPosition = (agentId) => {
+		if (memory[agentId]?.visitedTarget)
+			memory[agentId].visitedCurrent = true
+		else memory[agentId].visitedTarget = true
+	}
+
+	/**
+	 * Finds the closest agent (based on target location) to this agent.
+	 * @param {Position} agentPosition The position of this agent
+	 * @param {boolean} [knowsEnd] Whether or not the agent knows the end position.
+	 * @returns {any|null} The id of the closest agent or null if none match the criteria
+	 */
+	const findClosestAgent = (agentPosition, knowsEnd = false) => {
+		let closestId = null
+		let closestDistance = Number.POSITIVE_INFINITY
+
+		for (const [id, packet] of Object.entries(memory)) {
+			const hasCorrectMemory = packet.foundEnd === knowsEnd
+			const distance = manhattanDistance(
+				agentPosition,
+				packet.targetPosition
+			)
+			const hasBeenVisited = getPredictedPosition(id) === null
+
+			if (
+				hasCorrectMemory &&
+				distance < closestDistance &&
+				!hasBeenVisited
+			) {
+				closestId = id
+				closestDistance = distance
+			}
+		}
+
+		return closestId
 	}
 
 	return {
 		recordInteraction,
 		getLastPositionOfAgent,
 		getTargetPositionOfAgent,
+		findClosestAgent,
+		getPredictedPosition,
+		visitAgentPosition,
 	}
 }
 

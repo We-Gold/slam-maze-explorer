@@ -30,9 +30,6 @@ let completeMap
 let perfectPath1
 let perfectPath2
 
-let agent1
-let agent2
-
 let end
 
 let agentManager
@@ -87,8 +84,9 @@ const initAgents = () => {
 	agentManager = createAgentManager()
 
 	// Initialize the SLAM agents
-	agent1 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
-	agent2 = agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 }
 
 const setup = (p) => {
@@ -107,28 +105,6 @@ const setup = (p) => {
 		p,
 		calculateMazeDimensions(occupancyGrid, [0, 0], [800, 800])
 	)
-
-	// Create the first column
-	maps.primaryMap1 = createMazeRenderer(
-		p,
-		calculateMazeDimensions(occupancyGrid, [0, 0], [400, 400])
-	)
-
-	maps.secondaryMap1 = createMazeRenderer(
-		p,
-		calculateMazeDimensions(occupancyGrid, [0, 400], [400, 800])
-	)
-
-	// Create the second column
-	maps.primaryMap2 = createMazeRenderer(
-		p,
-		calculateMazeDimensions(occupancyGrid, [400, 0], [800, 400])
-	)
-
-	maps.secondaryMap2 = createMazeRenderer(
-		p,
-		calculateMazeDimensions(occupancyGrid, [400, 400], [800, 800])
-	)
 }
 
 const calculateMazeDimensions = (occupancyGrid, topLeft, bottomRight) => {
@@ -145,38 +121,14 @@ const calculateMazeDimensions = (occupancyGrid, topLeft, bottomRight) => {
 const render = (p) => {
 	p.background(BACKGROUND)
 
-	if (currentMode === Mode.SOLVING) {
-		// Render currrent agent maps
-		maps.primaryMap1.renderMaze(agent1.getInternalMap().getGrid())
-		maps.primaryMap2.renderMaze(agent2.getInternalMap().getGrid())
-
-		// Render solution maps
-		maps.secondaryMap1.renderMaze(occupancyGrid.getGrid())
-		maps.secondaryMap2.renderMaze(occupancyGrid.getGrid())
-
-		// Render the "perfect" solution to the secondary map
-		maps.secondaryMap1.renderPathWithColor(perfectPath1, PERFECT_PATH)
-		maps.secondaryMap2.renderPathWithColor(perfectPath2, PERFECT_PATH)
-
+	if (currentMode === Mode.SOLVING) {		
+		maps.editingMap.renderMaze(occupancyGrid.getGrid())
+		
 		agentManager.act()
 
-		// Render the first agent's path
-		maps.primaryMap1.renderPathWithColor(
-			agent1.getFuturePath(),
-			CURRENT_PATH
-		)
-		maps.primaryMap1.renderPathWithColor(agent1.getAgentPath(), PAST_PATH)
-		maps.primaryMap1.renderAgents([agent1])
-		maps.primaryMap1.renderEnd(end)
+		maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
 
-		// Render the second agent's path
-		maps.primaryMap2.renderPathWithColor(
-			agent2.getFuturePath(),
-			CURRENT_PATH
-		)
-		maps.primaryMap2.renderPathWithColor(agent2.getAgentPath(), PAST_PATH)
-		maps.primaryMap2.renderAgents([agent2])
-		maps.primaryMap2.renderEnd(end)
+		maps.editingMap.renderEnd(end)
 
 		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
 	} else if (currentMode === Mode.EDITING) {

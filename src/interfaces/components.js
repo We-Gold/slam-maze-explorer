@@ -15,17 +15,30 @@
  * @returns {Position} the equivalent position object
  */
 export const createPosition = (rowOrArray, colOrEmpty) => {
-    let [row, col] =
-        colOrEmpty === undefined ? rowOrArray : [rowOrArray, colOrEmpty]
+	let [row, col] =
+		colOrEmpty === undefined ? rowOrArray : [rowOrArray, colOrEmpty]
 
-    const getRow = () => row
-    const getCol = () => col
-    const getCoordinate = () => [row, col]
-    const equals = (otherPosition) =>
-        otherPosition.getRow() === getRow() &&
-        otherPosition.getCol() === getCol()
+	const getRow = () => row
+	const getCol = () => col
+	const getCoordinate = () => [row, col]
+	const equals = (otherPosition) =>
+		otherPosition.getRow() === getRow() &&
+		otherPosition.getCol() === getCol()
 
-    return { getRow, getCol, getCoordinate, equals }
+	return { getRow, getCol, getCoordinate, equals }
+}
+
+/**
+ * Calculates the Manhattan distance between two positions.
+ * @param {Position} position1 
+ * @param {Position} position2 
+ * @returns The distance between the two positions
+ */
+export const manhattanDistance = (position1, position2) => {
+	return (
+		Math.abs(position1.getRow() - position2.getRow()) +
+		Math.abs(position1.getCol() - position2.getCol())
+	)
 }
 
 /**
@@ -50,3 +63,4 @@ export const createPath = (positions) => {
 
 	return { get, length, getPositions, add }
 }
+
