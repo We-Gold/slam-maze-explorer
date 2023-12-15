@@ -134,3 +134,78 @@ h1 {
 	cursor: pointer;
 }
 
+.primary-text {
+	color: var(--primary);
+}
+
+.config-label {
+	font-family: "Montserrat";
+	font-size: 1rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	max-width: 50%;
+}
+
+.numeric-config-area {
+	margin: 1rem;
+	width: calc(100% - 2rem);
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: 1fr 1fr;
+}
+
+.color-config-area {
+	margin: 1rem;
+	width: calc(100% - 2rem);
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: 1fr;
+}
+
+.numeric-config {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.color-config {
+	display: flex;
+	flex-direction: row;
+	justify-content: start;
+}
+
+.controls > .pill:hover {
+	cursor: pointer;
+}
+
+.pill {
+	border-radius: 0.1875rem;
+	background: rgba(119, 119, 119, 0.22);
+	text-align: center;
+	font-family: Space Mono;
+	font-size: 1rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	padding: 0 0.3rem;
+	font-family: "Space Mono";
+}
+
+.color-pill {
+	border-radius: 0.1875rem;
+	text-align: center;
+	font-family: Space Mono;
+	font-size: 1rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	padding: 0 0.3rem;
+	font-family: "Space Mono";
+	margin-left: 0.3rem;
+}
+
+.color-pill:hover {
+	cursor: pointer;
+}
+
