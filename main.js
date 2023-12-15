@@ -87,6 +87,7 @@ const initAgents = () => {
 	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 }
 
 const setup = (p) => {
@@ -161,7 +162,7 @@ const sketch = (p) => {
 	p.mousePressed = (e) => mousePressed(p, e)
 }
 
-const P5 = new p5(sketch)
+const P5 = new p5(sketch, 'canvas-container')
 
 // Initialize DOM
 document.addEventListener("DOMContentLoaded", () => {

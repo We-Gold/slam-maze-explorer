@@ -9,9 +9,30 @@
 </head>
 
 <body>
-  <div class="gameInfo">
-    <button class="modeButton">Start</button>
-    <p id="frameRate"></p>
+  <div class="app-container">
+    <div class="menu-column">
+      <div class="panel">
+        <h1>Autonomous Maze Explorers</h1>
+        <p class="intro-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel ligula ut metus auctor
+          imperdiet.</p>
+        <p class="intro-text">Curabitur ut dui vel enim tristique ultrices. Lorem ipsum dolor sit amet, consectetur
+          adipiscing elit.</p>
+      </div>
+      <div class="config-panel panel">
+        <div>
+          <h1>Configuration</h1>
+        </div>
+        <a class="begin-button">
+          <p>Begin Simulation</p>
+        </a>
+      </div>
+    </div>
+    <div id="canvas-container" class="canvas-column panel"></div>
+    <div class="gameInfo">
+      <button class="modeButton">Start</button>
+      <p id="frameRate"></p>
+    </div>
+    <!-- <div id="canvas-container"></div> -->
   </div>
   <script type="module" src="/main.js"></script>
 </body>
