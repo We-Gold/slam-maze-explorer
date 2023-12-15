@@ -49,6 +49,10 @@ body {
 	background-color: black;
 }
 
+#canvas-container {
+	position: relative;
+}
+
 #canvas-container > canvas {
 	max-height: 100%;
 	max-width: 100%;
@@ -109,7 +113,7 @@ h1 {
 
 .begin-button {
 	text-align: center;
-	font-family: Space Mono;
+	font-family: "Space Mono";
 	font-size: 1.625rem;
 	font-style: normal;
 	font-weight: 400;
@@ -183,7 +187,6 @@ h1 {
 	border-radius: 0.1875rem;
 	background: rgba(119, 119, 119, 0.22);
 	text-align: center;
-	font-family: Space Mono;
 	font-size: 1rem;
 	font-style: normal;
 	font-weight: 400;
@@ -195,7 +198,6 @@ h1 {
 .color-pill {
 	border-radius: 0.1875rem;
 	text-align: center;
-	font-family: Space Mono;
 	font-size: 1rem;
 	font-style: normal;
 	font-weight: 400;
@@ -207,5 +209,39 @@ h1 {
 
 .color-pill:hover {
 	cursor: pointer;
+}
+
+.canvas-menu {
+	position: absolute;
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
+	top: 0.35rem;
+	right: 0.35rem;
+}
+
+.canvas-menu-pill {
+	border-radius: 0.1875rem;
+	background: rgba(252, 49, 134, 0.66);
+	text-align: center;
+	font-size: 1.25rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	padding: 0 0.3rem;
+	font-family: "Space Mono";
+	margin-left: 0.3rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+a.canvas-menu-pill:hover {
+	cursor: pointer;
+}
+
+.canvas-menu-pill-active {
+	border: 1px solid #fff;
 }
 
