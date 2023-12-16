@@ -4,7 +4,6 @@ import p5 from "p5"
 import {
 	braidMaze,
 	generateBacktrackingGrid,
-	supersampleMazeGridSparse,
 	degradeGrid,
 	solveAStarGrid,
 	supersampleMazeGrid,
@@ -12,10 +11,7 @@ import {
 } from "algernon-js"
 import {
 	BACKGROUND,
-	CURRENT_PATH,
-	PAST_PATH,
-	PERFECT_PATH,
-	mazeSize,
+	defaultConfig,
 } from "./src/constants"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
@@ -23,6 +19,7 @@ import { createPosition } from "./src/interfaces/components"
 import { sampleRegion } from "./src/interfaces/environment"
 import { createAgentManager } from "./src/agent/agent-manager"
 import { createMazeRenderer } from "./src/rendering/renderer"
+import { createStateManager } from "./src/state-manager"
 
 let occupancyGrid
 
@@ -45,14 +42,23 @@ let currentMode = Mode.EDITING
 
 const frameRateText = document.querySelector("#frameRate")
 
-const initializeMaze = () => {
+const initializeMaze = (config) => {
+	initializeMazeRecursive(config)
+
+	occupancyGrid = createOccupancyGrid(completeMap)
+	occupancyGrid.setEndPosition(end)
+}
+
+const initializeMazeRecursive = (config) => {
+	const supersampleFactor = 4 // Multiple of 2 for best results
+
+	const mazeSize = Math.trunc(config.mazeSize / supersampleFactor) - 1
+
 	// Create the full maze
-	completeMap = generateBacktrackingGrid(mazeSize.rows, mazeSize.cols)
+	completeMap = generateBacktrackingGrid(mazeSize, mazeSize)
 
 	// Open up the maze (multiple potential paths)
 	braidMaze(completeMap, 0.2)
-
-	const supersampleFactor = 4 // Multiple of 2 for best results
 
 	completeMap = supersampleMazeGrid(completeMap, supersampleFactor)
 
@@ -77,29 +83,24 @@ const initializeMaze = () => {
 	// Recursively regenerate the maze if there is no valid path
 	// TODO replace with while loop and keep variables internal
 	if (perfectPath1.length() == 0 || perfectPath2.length() == 0)
-		initializeMaze()
+		initializeMaze(config)
 }
 
-const initAgents = () => {
-	agentManager = createAgentManager()
+const initAgents = (config) => {
+	agentManager = createAgentManager(config)
 
 	// Initialize the SLAM agents
-	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
-	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
-	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
-	agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
+	for (let i = 0; i < config.agents; i++)
+		agentManager.makeAgent(occupancyGrid, createPosition(0, 0))
 }
 
 const setup = (p) => {
 	// Create the canvas to render on
 	p.createCanvas(800, 800)
 
-	initializeMaze()
+	initializeMaze(defaultConfig)
 
-	occupancyGrid = createOccupancyGrid(completeMap)
-	occupancyGrid.setEndPosition(end)
-
-	initAgents()
+	initAgents(defaultConfig)
 
 	// Create the editing map
 	maps.editingMap = createMazeRenderer(
@@ -166,21 +167,24 @@ const P5 = new p5(sketch, 'canvas-container')
 
 // Initialize DOM
 document.addEventListener("DOMContentLoaded", () => {
-	const modeButton = document.querySelector(".modeButton")
+	const stateManager = createStateManager()
 
-	modeButton.addEventListener("click", () => {
+	stateManager.setBeginSimButtonCallback((button, config) => {
 		if (currentMode === Mode.EDITING) {
 			currentMode = Mode.SOLVING
 
-			initAgents()
+			if (config.mazeSize !== defaultConfig.mazeSize) // TODO: store previous size
+				initializeMaze(config)
+
+			initAgents(config)
 
 			// Update button text
-			modeButton.textContent = `Cancel`
+			button.textContent = `End Simulation`
 		} else {
 			currentMode = Mode.EDITING
 
 			// Update button text
-			modeButton.textContent = `Start`
+			button.textContent = `Begin Simulation`
 		}
 	})
 })

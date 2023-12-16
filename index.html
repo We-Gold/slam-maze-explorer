@@ -12,7 +12,7 @@
   <div class="app-container">
     <div class="menu-column">
       <div class="panel">
-        <h1>Autonomous Maze Explorers</h1>
+        <h1>SLAM Maze Explorers</h1>
         <p class="intro-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel ligula ut metus auctor
           imperdiet.</p>
         <p class="intro-text">Curabitur ut dui vel enim tristique ultrices. Lorem ipsum dolor sit amet, consectetur
@@ -25,40 +25,40 @@
             <div class="numeric-config">
               <span class="config-label">Agents:</span>
               <span>
-                <span class="pill primary-text">5</span>
+                <span id="agents-config" class="pill primary-text">4</span>
                 <span class="controls">
-                  <span class="pill">+</span>
-                  <span class="pill">-</span>
+                  <span id="agents-config-inc" class="pill">+</span>
+                  <span id="agents-config-dec" class="pill">-</span>
                 </span>
               </span>
             </div>
             <div class="numeric-config">
               <span class="config-label">Maze Size:</span>
               <span>
-                <span class="pill primary-text">80</span>
+                <span id="maze-size-config" class="pill primary-text">80</span>
                 <span class="controls">
-                  <span class="pill">+</span>
-                  <span class="pill">-</span>
+                  <span id="maze-size-config-inc" class="pill">+</span>
+                  <span id="maze-size-config-dec" class="pill">-</span>
                 </span>
               </span>
             </div>
             <div class="numeric-config">
               <span class="config-label">Visible Radius:</span>
               <span>
-                <span class="pill primary-text">3</span>
+                <span id="visible-radius-config" class="pill primary-text">3</span>
                 <span class="controls">
-                  <span class="pill">+</span>
-                  <span class="pill">-</span>
+                  <span id="visible-radius-config-inc" class="pill">+</span>
+                  <span id="visible-radius-config-dec" class="pill">-</span>
                 </span>
               </span>
             </div>
             <div class="numeric-config">
               <span class="config-label">Comms Radius:</span>
               <span>
-                <span class="pill primary-text">4</span>
+                <span id="comms-radius-config" class="pill primary-text">5</span>
                 <span class="controls">
-                  <span class="pill">+</span>
-                  <span class="pill">-</span>
+                  <span id="comms-radius-config-inc" class="pill">+</span>
+                  <span id="comms-radius-config-dec" class="pill">-</span>
                 </span>
               </span>
             </div>
@@ -78,7 +78,7 @@
             </div>
           </div>
         </div>
-        <a class="begin-button">
+        <a id="start-sim-btn" class="begin-button">
           <p>Begin Simulation</p>
         </a>
       </div>
@@ -106,7 +106,6 @@
       <button class="modeButton">Start</button>
       <p id="frameRate"></p>
     </div>
-    <!-- <div id="canvas-container"></div> -->
   </div>
   <script type="module" src="/main.js"></script>
 </body>

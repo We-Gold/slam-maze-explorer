@@ -193,6 +193,7 @@ h1 {
 	line-height: normal;
 	padding: 0 0.3rem;
 	font-family: "Space Mono";
+	user-select: none;
 }
 
 .color-pill {
@@ -235,6 +236,7 @@ h1 {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	user-select: none;
 }
 
 a.canvas-menu-pill:hover {

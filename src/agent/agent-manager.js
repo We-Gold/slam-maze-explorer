@@ -1,4 +1,3 @@
-import { COMMUNICATION_RADIUS, VISIBLE_RADIUS } from "../constants"
 import { createSLAMAgent } from "./slam-agent"
 import { createCommunicationSensor } from "../interfaces/environment"
 
@@ -15,7 +14,7 @@ import { createCommunicationSensor } from "../interfaces/environment"
  * Creates an agent manager object.
  * @returns {AgentManager} An object with methods to manage agents.
  */
-export const createAgentManager = () => {
+export const createAgentManager = ({commsRadius, visibleRadius}) => {
 	const agents = []
 
 	/**
@@ -81,8 +80,8 @@ export const createAgentManager = () => {
 				createGetAgentMethod(),
 				createGetOtherAgentsMethod()
 			),
-			VISIBLE_RADIUS,
-			COMMUNICATION_RADIUS
+			visibleRadius,
+			commsRadius
 		)
 
 		addAgent(agent)

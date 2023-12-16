@@ -12,7 +12,9 @@ export const PAST_PATH = { r: 100, g: 100, b: 100 }
 export const AGENT = { r: 255, g: 70, b: 20 }
 export const END = { r: 20, g: 255, b: 70 }
 
-export const mazeSize = { rows: 19, cols: 19 }
-
-export const COMMUNICATION_RADIUS = 5
-export const VISIBLE_RADIUS = 3
+export const defaultConfig = {
+    visibleRadius: 3,
+    commsRadius: 5,
+    mazeSize: 80,
+    agents: 4,
+}
