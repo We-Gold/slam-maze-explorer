@@ -149,17 +149,17 @@ export const createStateManager = () => {
 			menuState = MenuState.DEFAULT
 			deactivateMenuBtn(focusModeButton)
 
-            // Switch mode if necessary
-            if (mode !== Mode.EDITING && mode === Mode.SOLVING_FOCUS)
-                mode = Mode.SOLVING
+			// Switch mode if necessary
+			if (mode !== Mode.EDITING && mode === Mode.SOLVING_FOCUS)
+				mode = Mode.SOLVING
 		} else {
 			menuState = MenuState.FOCUS
 			activateMenuBtn(focusModeButton)
 			deactivateMenuBtn(graphModeButton)
 
-            // Switch mode if necessary
-            if (mode !== Mode.EDITING && mode !== Mode.SOLVING_FOCUS)
-                mode = Mode.SOLVING_FOCUS
+			// Switch mode if necessary
+			if (mode !== Mode.EDITING && mode !== Mode.SOLVING_FOCUS)
+				mode = Mode.SOLVING_FOCUS
 		}
 	})
 
@@ -170,20 +170,24 @@ export const createStateManager = () => {
 			menuState = MenuState.DEFAULT
 			deactivateMenuBtn(graphModeButton)
 
-            // Switch mode if necessary
-            if (mode !== Mode.EDITING && mode === Mode.SOLVING_GRAPH)
-                mode = Mode.SOLVING
+			// Switch mode if necessary
+			if (mode !== Mode.EDITING && mode === Mode.SOLVING_GRAPH)
+				mode = Mode.SOLVING
 		} else {
 			menuState = MenuState.GRAPH
 			activateMenuBtn(graphModeButton)
 			deactivateMenuBtn(focusModeButton)
 
-            // Switch mode if necessary
-            if (mode !== Mode.EDITING && mode !== Mode.SOLVING_GRAPH)
-                mode = Mode.SOLVING_GRAPH
+			// Switch mode if necessary
+			if (mode !== Mode.EDITING && mode !== Mode.SOLVING_GRAPH)
+				mode = Mode.SOLVING_GRAPH
 		}
 	})
 
-	return { setBeginSimButtonCallback, getMode }
+	return {
+		setBeginSimButtonCallback,
+		getMode,
+		endSimulation: () => beginSimButtonCallback(),
+	}
 }
 

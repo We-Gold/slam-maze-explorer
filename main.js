@@ -9,7 +9,12 @@ import {
 	supersampleMazeGrid,
 	fillGrid,
 } from "algernon-js"
-import { BACKGROUND, CURRENT_PATH, PAST_PATH, defaultConfig } from "./src/constants"
+import {
+	BACKGROUND,
+	CURRENT_PATH,
+	PAST_PATH,
+	defaultConfig,
+} from "./src/constants"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
@@ -104,37 +109,53 @@ const render = (p) => {
 	p.background(BACKGROUND)
 
 	// TODO: implement graph mode
-	if (stateManager.getMode() === Mode.SOLVING || stateManager.getMode() === Mode.SOLVING_GRAPH) {
+	if (stateManager.getMode() === Mode.EDITING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
-
-		agentManager.act()
-
-		maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
-
 		maps.editingMap.renderEnd(end)
+	} else {
+		// Have all agents take their next action
+		agentManager.act()
 
 		// Update the timer
 		timer.updateTimerElement()
-	} else if (stateManager.getMode() === Mode.SOLVING_FOCUS) {
-		const agent = agentManager.getAgent(0)
 
-		maps.editingMap.renderMaze(agent.getInternalMap().getGrid())
+		if (
+			stateManager.getMode() === Mode.SOLVING ||
+			stateManager.getMode() === Mode.SOLVING_GRAPH
+		) {
+			maps.editingMap.renderMaze(occupancyGrid.getGrid())
 
-		agentManager.act()
+			maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
 
-		// Show the past and future paths of the given agent
-		maps.editingMap.renderPathWithColor(agent.getFuturePath(), CURRENT_PATH)
-		maps.editingMap.renderPathWithColor(agent.getAgentPath(), PAST_PATH)
+			maps.editingMap.renderEnd(end)
+		} else if (stateManager.getMode() === Mode.SOLVING_FOCUS) {
+			const agent = agentManager.getAgent(0)
 
-		maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
+			maps.editingMap.renderMaze(agent.getInternalMap().getGrid())
 
+			agentManager.act()
+
+			// Show the past and future paths of the given agent
+			maps.editingMap.renderPathWithColor(
+				agent.getFuturePath(),
+				CURRENT_PATH
+			)
+			maps.editingMap.renderPathWithColor(agent.getAgentPath(), PAST_PATH)
+
+			maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
+		}
+
+		// Render the end goal
 		maps.editingMap.renderEnd(end)
 
-		// Update the timer
-		timer.updateTimerElement()
-	} else if (stateManager.getMode() === Mode.EDITING) {
-		maps.editingMap.renderMaze(occupancyGrid.getGrid())
-		maps.editingMap.renderEnd(end)
+		// Check if all of the agents have reached the goal
+		if (
+			agentManager
+				.getAllAgents()
+				.every((agent) => agent.getPosition().equals(end))
+		) {
+			stateManager.endSimulation()
+		}
 	}
 }
 
