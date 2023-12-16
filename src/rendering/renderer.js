@@ -27,7 +27,7 @@ export const createMazeRenderer = (p, dimensions) => {
 				renderPathWithColor(agent.getAgentPath(), PAST_PATH)
 			}
 
-			renderAgent(p, agent.getPosition(), dimensions)
+			renderAgent(p, agent.getPosition(), dimensions, agent.foundEnd())
 		})
 
 	const renderEnd = (position) => renderEndPosition(p, position, dimensions)
