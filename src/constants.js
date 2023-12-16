@@ -1,7 +1,3 @@
-// Only for grid/editing mode
-// export const OBSTACLE = true
-// export const OPEN = false
-
 export const BACKGROUND = 0
 export const WALL = 255
 
@@ -11,6 +7,8 @@ export const PAST_PATH = { r: 100, g: 100, b: 100 }
 
 export const AGENT = { r: 255, g: 70, b: 20 }
 export const END = { r: 20, g: 255, b: 70 }
+
+export const CANVAS_SIZE = 800
 
 export const defaultConfig = {
     visibleRadius: 3,

@@ -11,6 +11,7 @@ import {
 } from "algernon-js"
 import {
 	BACKGROUND,
+	CANVAS_SIZE,
 	CURRENT_PATH,
 	PAST_PATH,
 	defaultConfig,
@@ -81,7 +82,7 @@ const initAgents = (config) => {
 
 const setup = (p) => {
 	// Create the canvas to render on
-	p.createCanvas(800, 800)
+	p.createCanvas(CANVAS_SIZE, CANVAS_SIZE)
 
 	initializeMaze(defaultConfig)
 
@@ -90,7 +91,7 @@ const setup = (p) => {
 	// Create the editing map
 	maps.editingMap = createMazeRenderer(
 		p,
-		calculateMazeDimensions(occupancyGrid, [0, 0], [800, 800])
+		calculateMazeDimensions(occupancyGrid, [0, 0], [CANVAS_SIZE, CANVAS_SIZE])
 	)
 }
 
@@ -194,9 +195,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	stateManager.setBeginSimButtonCallback((button, config, newMode) => {
 		if (newMode !== Mode.EDITING) {
-			if (config.mazeSize !== defaultConfig.mazeSize)
+			if (config.mazeSize !== defaultConfig.mazeSize) {
 				// TODO: store previous size
 				initializeMaze(config)
+
+				// Update the rendering dimensions for the map
+				maps.editingMap.setDimensions(
+					calculateMazeDimensions(occupancyGrid, [0, 0], [CANVAS_SIZE, CANVAS_SIZE])
+				)
+			}
 
 			initAgents(config)
 

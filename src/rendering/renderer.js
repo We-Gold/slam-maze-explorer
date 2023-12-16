@@ -13,6 +13,8 @@ import {
  * @param {Agent[]} agents
  */
 export const createMazeRenderer = (p, dimensions) => {
+	const setDimensions = (newDimensions) => (dimensions = newDimensions)
+
 	const renderMaze = (grid) => renderGridMaze(p, grid, dimensions)
 
 	const renderAgents = (agents, showPaths = false) =>
@@ -36,6 +38,7 @@ export const createMazeRenderer = (p, dimensions) => {
 	const getDimensions = () => dimensions
 
 	return {
+		setDimensions,
 		renderMaze,
 		renderAgents,
 		renderEnd,
