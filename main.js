@@ -9,33 +9,23 @@ import {
 	supersampleMazeGrid,
 	fillGrid,
 } from "algernon-js"
-import { BACKGROUND, defaultConfig } from "./src/constants"
+import { BACKGROUND, CURRENT_PATH, PAST_PATH, defaultConfig } from "./src/constants"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
 import { sampleRegion } from "./src/interfaces/environment"
 import { createAgentManager } from "./src/agent/agent-manager"
 import { createMazeRenderer } from "./src/rendering/renderer"
-import { createStateManager, createTimer } from "./src/state-manager"
+import { createStateManager, createTimer, Mode } from "./src/state-manager"
 
 let occupancyGrid
-
 let completeMap
-
 let end
-
 let agentManager
+let timer
+let stateManager
 
 const maps = {}
-
-const Mode = {
-	EDITING: 0,
-	SOLVING: 1,
-}
-
-let timer
-
-let currentMode = Mode.EDITING
 
 const initializeMaze = (config) => {
 	initializeMazeRecursive(config)
@@ -113,7 +103,8 @@ const calculateMazeDimensions = (occupancyGrid, topLeft, bottomRight) => {
 const render = (p) => {
 	p.background(BACKGROUND)
 
-	if (currentMode === Mode.SOLVING) {
+	// TODO: implement graph mode
+	if (stateManager.getMode() === Mode.SOLVING || stateManager.getMode() === Mode.SOLVING_GRAPH) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
 
 		agentManager.act()
@@ -124,7 +115,24 @@ const render = (p) => {
 
 		// Update the timer
 		timer.updateTimerElement()
-	} else if (currentMode === Mode.EDITING) {
+	} else if (stateManager.getMode() === Mode.SOLVING_FOCUS) {
+		const agent = agentManager.getAgent(0)
+
+		maps.editingMap.renderMaze(agent.getInternalMap().getGrid())
+
+		agentManager.act()
+
+		// Show the past and future paths of the given agent
+		maps.editingMap.renderPathWithColor(agent.getFuturePath(), CURRENT_PATH)
+		maps.editingMap.renderPathWithColor(agent.getAgentPath(), PAST_PATH)
+
+		maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
+
+		maps.editingMap.renderEnd(end)
+
+		// Update the timer
+		timer.updateTimerElement()
+	} else if (stateManager.getMode() === Mode.EDITING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
 		maps.editingMap.renderEnd(end)
 	}
@@ -132,7 +140,7 @@ const render = (p) => {
 
 const mousePressed = (p) => {
 	// Only allow editing cells when in EDITING mode
-	if (currentMode !== Mode.EDITING) return
+	if (stateManager.getMode() !== Mode.EDITING) return
 
 	const [, , w, h] = maps.editingMap.getDimensions()
 	const [x, y] = [p.mouseX, p.mouseY]
@@ -158,16 +166,13 @@ const P5 = new p5(sketch, "canvas-container")
 
 // Initialize DOM
 document.addEventListener("DOMContentLoaded", () => {
-	const stateManager = createStateManager()
+	stateManager = createStateManager()
 
 	// Initialize the timer
 	timer = createTimer(document.getElementById("timer"))
 
-	stateManager.setBeginSimButtonCallback((button, config) => {
-		if (currentMode === Mode.EDITING) {
-			// Switch to solving mode
-			currentMode = Mode.SOLVING
-
+	stateManager.setBeginSimButtonCallback((button, config, newMode) => {
+		if (newMode !== Mode.EDITING) {
 			if (config.mazeSize !== defaultConfig.mazeSize)
 				// TODO: store previous size
 				initializeMaze(config)
@@ -180,9 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			// Reset the timer
 			timer.reset()
 		} else {
-			// Switch to editing mode
-			currentMode = Mode.EDITING
-
 			// Update button text
 			button.textContent = `Begin Simulation`
 		}

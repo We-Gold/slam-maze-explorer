@@ -1,6 +1,19 @@
 import { createNumericalConfig } from "./components/numeric-config"
 import { defaultConfig } from "./constants"
 
+export const Mode = {
+	EDITING: 0,
+	SOLVING: 1,
+	SOLVING_FOCUS: 2,
+	SOLVING_GRAPH: 3,
+}
+
+const MenuState = {
+	DEFAULT: 0,
+	FOCUS: 1,
+	GRAPH: 2,
+}
+
 export const createConfiguration = (
 	agents,
 	mazeSize,
@@ -26,7 +39,7 @@ export const createTimer = (element) => {
 
 	const updateTimerElement = () => {
 		const { min, sec } = getDuration()
-        const formatSec = sec >= 10 ? sec : "0" + sec
+		const formatSec = sec >= 10 ? sec : "0" + sec
 		element.textContent = `${min}:${formatSec}`
 	}
 
@@ -36,6 +49,11 @@ export const createTimer = (element) => {
 }
 
 export const createStateManager = () => {
+	// Set initial environment mode
+	let mode = Mode.EDITING
+	let menuState = MenuState.DEFAULT
+	const getMode = () => mode
+
 	const { agents, mazeSize, visibleRadius, commsRadius } = defaultConfig
 
 	// Store references to the numeric configuration elements
@@ -85,8 +103,26 @@ export const createStateManager = () => {
 	let beginSimButtonCallback = () => {}
 	const setBeginSimButtonCallback = (_callback) => {
 		// Create a callback that gives the caller access to the current configuration and the simulation button
-		const callback = () =>
-			_callback(beginSimulationButton, getConfigurationCallback())
+		const callback = () => {
+			// Update the mode
+			if (mode === Mode.EDITING) {
+				switch (menuState) {
+					case MenuState.DEFAULT:
+						mode = Mode.SOLVING
+						break
+					case MenuState.FOCUS:
+						mode = Mode.SOLVING_FOCUS
+						break
+					case MenuState.GRAPH:
+						mode = Mode.SOLVING_GRAPH
+						break
+				}
+			} else {
+				mode = Mode.EDITING
+			}
+
+			_callback(beginSimulationButton, getConfigurationCallback(), mode)
+		}
 
 		beginSimulationButton.removeEventListener(
 			"click",
@@ -97,6 +133,57 @@ export const createStateManager = () => {
 		beginSimButtonCallback = callback
 	}
 
-	return { setBeginSimButtonCallback }
+	/* Handle simulation mode buttons */
+	const activateMenuBtn = (button) =>
+		(button.className = "canvas-menu-pill canvas-menu-pill-active")
+	const deactivateMenuBtn = (button) =>
+		(button.className = "canvas-menu-pill")
+
+	const focusModeButton = document.querySelector("#menu-focus-btn")
+	const graphModeButton = document.querySelector("#menu-graph-btn")
+
+	focusModeButton.addEventListener("click", (e) => {
+		e.preventDefault()
+
+		if (menuState === MenuState.FOCUS) {
+			menuState = MenuState.DEFAULT
+			deactivateMenuBtn(focusModeButton)
+
+            // Switch mode if necessary
+            if (mode !== Mode.EDITING && mode === Mode.SOLVING_FOCUS)
+                mode = Mode.SOLVING
+		} else {
+			menuState = MenuState.FOCUS
+			activateMenuBtn(focusModeButton)
+			deactivateMenuBtn(graphModeButton)
+
+            // Switch mode if necessary
+            if (mode !== Mode.EDITING && mode !== Mode.SOLVING_FOCUS)
+                mode = Mode.SOLVING_FOCUS
+		}
+	})
+
+	graphModeButton.addEventListener("click", (e) => {
+		e.preventDefault()
+
+		if (menuState === MenuState.GRAPH) {
+			menuState = MenuState.DEFAULT
+			deactivateMenuBtn(graphModeButton)
+
+            // Switch mode if necessary
+            if (mode !== Mode.EDITING && mode === Mode.SOLVING_GRAPH)
+                mode = Mode.SOLVING
+		} else {
+			menuState = MenuState.GRAPH
+			activateMenuBtn(graphModeButton)
+			deactivateMenuBtn(focusModeButton)
+
+            // Switch mode if necessary
+            if (mode !== Mode.EDITING && mode !== Mode.SOLVING_GRAPH)
+                mode = Mode.SOLVING_GRAPH
+		}
+	})
+
+	return { setBeginSimButtonCallback, getMode }
 }
 

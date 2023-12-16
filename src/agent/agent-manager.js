@@ -28,7 +28,12 @@ export const createAgentManager = ({commsRadius, visibleRadius}) => {
 	 * @param {number} agentId - The ID of the agent to get.
 	 * @returns {Object} The agent with the specified ID.
 	 */
-	const getAgent = (agentId) => agents[agentId]
+	const getAgent = (agentId) => {
+		if (agents[agentId] === undefined)
+			console.error(`No agents available with id: ${agentId}`)
+
+		return agents[agentId]
+	}
 
 	/**
 	 * Gets the ID for the next agent to be added.
