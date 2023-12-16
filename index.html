@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLAM Maze Explorer</title>
+  <script type="module" crossorigin src="/assets/index-6c31f4a3.js"></script>
+  <link rel="stylesheet" href="/assets/index-f1e15bb6.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <div class="menu-column">
+      <div class="panel">
+        <h1>SLAM Maze Explorers</h1>
+        <p class="intro-text">Simultaneous Localization and Mapping (SLAM) refers to agents that explore and map their
+          environment.</p>
+        <p class="intro-text">These agents cannot win until they <i>all</i> locate and reach the goal. They can share
+          memory when nearby.</p>
+      </div>
+      <div class="config-panel panel">
+        <div>
+          <h1>Configuration</h1>
+          <div id="numeric-config-area" class="numeric-config-area"></div>
+          <div class="color-config-area">
+            <div class="color-config">
+              <span class="config-label">Goal Color:</span>
+              <span class="color-pill" style="background-color: rgba(0, 255, 0, 0.55);">#00FF00</span>
+            </div>
+            <div class="color-config">
+              <span class="config-label">Agent Start:</span>
+              <span class="color-pill" style="background-color: #FF2900;">#FF2900</span>
+            </div>
+            <div class="color-config">
+              <span class="config-label">Goal Found:</span>
+              <span class="color-pill" style="background-color: #0047FF;">#0047FF</span>
+            </div>
+          </div>
+        </div>
+        <a id="start-sim-btn" class="begin-button">
+          <p>Begin Simulation</p>
+        </a>
+      </div>
+    </div>
+    <div id="canvas-container" class="canvas-column panel">
+      <div class="canvas-menu">
+        <a id="menu-graph-btn" class="canvas-menu-pill">
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+            <path
+              d="M21.5547 17.6667C21.7996 17.6667 22 17.8635 22 18.1042V19.5625C22 19.8031 21.7996 20 21.5547 20H3.44531C3.20039 20 3 19.8031 3 19.5625V6.4375C3 6.19687 3.20039 6 3.44531 6H4.92969C5.17461 6 5.375 6.19687 5.375 6.4375V17.6667H21.5547ZM16.8307 9.48177L13.6875 11.5417L10.5221 7.39635C10.3328 7.14844 9.94688 7.16667 9.78359 7.43281L6.5625 12.7083V16.5H20.8125L17.4764 9.65312C17.3576 9.41615 17.0533 9.33594 16.8307 9.48177Z"
+              fill="white" />
+          </svg>
+        </a>
+        <a id="menu-focus-btn" class="canvas-menu-pill">
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+            <path
+              d="M20.796 18.833L17.8749 15.7177C17.743 15.5771 17.5643 15.499 17.3768 15.499H16.8992C17.7079 14.396 18.1884 13.0086 18.1884 11.4994C18.1884 7.90909 15.4607 5 12.0942 5C8.72774 5 6 7.90909 6 11.4994C6 15.0896 8.72774 17.9987 12.0942 17.9987C13.5093 17.9987 14.8102 17.4863 15.8445 16.6239V17.1332C15.8445 17.3332 15.9177 17.5238 16.0496 17.6644L18.9707 20.7797C19.2461 21.0734 19.6914 21.0734 19.9639 20.7797L20.7931 19.8954C21.0685 19.6017 21.0685 19.1267 20.796 18.833ZM12.0942 15.499C10.0228 15.499 8.34392 13.7116 8.34392 11.4994C8.34392 9.29021 10.0198 7.49976 12.0942 7.49976C14.1656 7.49976 15.8445 9.28708 15.8445 11.4994C15.8445 13.7085 14.1686 15.499 12.0942 15.499Z"
+              fill="white" />
+          </svg>
+        </a>
+        <div id="timer" class="canvas-menu-pill">0:00</div>
+      </div>
+    </div>
+    <div class="gameInfo">
+      <button class="modeButton">Start</button>
+      <p id="frameRate"></p>
+    </div>
+  </div>
+  
+</body>
+
+</html>
