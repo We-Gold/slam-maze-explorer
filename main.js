@@ -9,23 +9,18 @@ import {
 	supersampleMazeGrid,
 	fillGrid,
 } from "algernon-js"
-import {
-	BACKGROUND,
-	defaultConfig,
-} from "./src/constants"
+import { BACKGROUND, defaultConfig } from "./src/constants"
 import { createOccupancyGrid } from "./src/interfaces/grid"
 import { convertCoordsToPath } from "./src/interfaces/motion-planner"
 import { createPosition } from "./src/interfaces/components"
 import { sampleRegion } from "./src/interfaces/environment"
 import { createAgentManager } from "./src/agent/agent-manager"
 import { createMazeRenderer } from "./src/rendering/renderer"
-import { createStateManager } from "./src/state-manager"
+import { createStateManager, createTimer } from "./src/state-manager"
 
 let occupancyGrid
 
 let completeMap
-let perfectPath1
-let perfectPath2
 
 let end
 
@@ -38,9 +33,9 @@ const Mode = {
 	SOLVING: 1,
 }
 
-let currentMode = Mode.EDITING
+let timer
 
-const frameRateText = document.querySelector("#frameRate")
+let currentMode = Mode.EDITING
 
 const initializeMaze = (config) => {
 	initializeMazeRecursive(config)
@@ -72,18 +67,13 @@ const initializeMazeRecursive = (config) => {
 	completeMap[end.getRow()][end.getCol()] = false
 
 	// Find the optimal solution (not currently optimal)
-	perfectPath1 = convertCoordsToPath(
-		solveAStarGrid(completeMap, [0, 0], end.getCoordinate())
-	)
-
-	perfectPath2 = convertCoordsToPath(
+	const path = convertCoordsToPath(
 		solveAStarGrid(completeMap, [0, 0], end.getCoordinate())
 	)
 
 	// Recursively regenerate the maze if there is no valid path
 	// TODO replace with while loop and keep variables internal
-	if (perfectPath1.length() == 0 || perfectPath2.length() == 0)
-		initializeMaze(config)
+	if (path.length() == 0) initializeMaze(config)
 }
 
 const initAgents = (config) => {
@@ -123,16 +113,17 @@ const calculateMazeDimensions = (occupancyGrid, topLeft, bottomRight) => {
 const render = (p) => {
 	p.background(BACKGROUND)
 
-	if (currentMode === Mode.SOLVING) {		
+	if (currentMode === Mode.SOLVING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
-		
+
 		agentManager.act()
 
 		maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
 
 		maps.editingMap.renderEnd(end)
 
-		frameRateText.textContent = `FPS: ${Math.round(p.frameRate())}`
+		// Update the timer
+		timer.updateTimerElement()
 	} else if (currentMode === Mode.EDITING) {
 		maps.editingMap.renderMaze(occupancyGrid.getGrid())
 		maps.editingMap.renderEnd(end)
@@ -163,24 +154,33 @@ const sketch = (p) => {
 	p.mousePressed = (e) => mousePressed(p, e)
 }
 
-const P5 = new p5(sketch, 'canvas-container')
+const P5 = new p5(sketch, "canvas-container")
 
 // Initialize DOM
 document.addEventListener("DOMContentLoaded", () => {
 	const stateManager = createStateManager()
 
+	// Initialize the timer
+	timer = createTimer(document.getElementById("timer"))
+
 	stateManager.setBeginSimButtonCallback((button, config) => {
 		if (currentMode === Mode.EDITING) {
+			// Switch to solving mode
 			currentMode = Mode.SOLVING
 
-			if (config.mazeSize !== defaultConfig.mazeSize) // TODO: store previous size
+			if (config.mazeSize !== defaultConfig.mazeSize)
+				// TODO: store previous size
 				initializeMaze(config)
 
 			initAgents(config)
 
 			// Update button text
 			button.textContent = `End Simulation`
+
+			// Reset the timer
+			timer.reset()
 		} else {
+			// Switch to editing mode
 			currentMode = Mode.EDITING
 
 			// Update button text
