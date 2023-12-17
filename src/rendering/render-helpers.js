@@ -1,5 +1,12 @@
 import { helpers } from "algernon-js"
-import { AGENT, AGENT_FOUND_END, BACKGROUND, END, WALL } from "../constants"
+import {
+	AGENT,
+	AGENT_FOUND_END,
+	BACKGROUND,
+	END,
+	MAX_DENSITY_COLOR,
+	WALL,
+} from "../constants"
 
 /**
  * Render a maze within the given region.
@@ -129,3 +136,27 @@ export const renderEnd = (p, position, dimensions) => {
 
 	p.circle(x + col * w + w / 2, y + row * h + h / 2, w / 1.5)
 }
+
+export const renderDensityRanges = (p, ranges, dimensions) => {
+	const [, , w, h, x, y] = dimensions
+
+	p.noStroke()
+
+	for (const { range, densityProportion } of ranges) {
+		const dp = Math.min(densityProportion, 1)
+
+		// Set the fill color based on the density of the area
+		p.fill(`rgba(${Math.trunc(MAX_DENSITY_COLOR.r * dp)},
+			${Math.trunc(MAX_DENSITY_COLOR.g * dp)},
+			${Math.trunc(MAX_DENSITY_COLOR.b * dp)}, 0.5)`)
+
+		const width = (range.endCol - range.startCol) * w
+		const height = (range.endRow - range.startRow) * h
+
+		const [_x, _y] = [x + range.startCol * w, y + range.startRow * h]
+
+		// Render a rectangle to represent the obstacle
+		p.rect(_x, _y, width, height)
+	}
+}
+

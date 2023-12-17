@@ -144,6 +144,8 @@ const render = (p) => {
 			maps.editingMap.renderPathWithColor(agent.getAgentPath(), PAST_PATH)
 
 			maps.editingMap.renderAgents(agentManager.getAllAgents(), false)
+
+			maps.editingMap.renderDensity(agent.collectDensityRanges())
 		}
 
 		// Render the end goal

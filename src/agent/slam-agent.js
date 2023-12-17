@@ -17,6 +17,7 @@ import { agentPeriodic } from "./agent-logic"
  * @property {function} receiveMemory - Receives a memory packet from another agent and updates its internal map.
  * @property {function} act - Performs an action based on the agent's current state and environment.
  * @property {function} foundEnd - returns true if the agent has located the end of the maze
+ * @property {funciton} collectDensityRanges - Returns a sequence of density readings
  */
 
 /**
@@ -185,7 +186,8 @@ export const createSLAMAgent = (
 		makeMemoryPacket,
 		receiveMemory,
 		act,
-		foundEnd: environmentSensor.foundEndPosition
+		foundEnd: environmentSensor.foundEndPosition,
+		collectDensityRanges: environmentSensor.collectDensityRanges
 	}
 }
 

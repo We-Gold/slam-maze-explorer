@@ -4,6 +4,7 @@ import {
 	renderGridMaze,
 	renderPath,
 	renderEnd as renderEndPosition,
+	renderDensityRanges,
 } from "./render-helpers"
 
 /**
@@ -20,10 +21,7 @@ export const createMazeRenderer = (p, dimensions) => {
 	const renderAgents = (agents, showPaths = false) =>
 		agents.forEach((agent) => {
 			if (showPaths) {
-				renderPathWithColor(
-					agent.getFuturePath(),
-					CURRENT_PATH
-				)
+				renderPathWithColor(agent.getFuturePath(), CURRENT_PATH)
 				renderPathWithColor(agent.getAgentPath(), PAST_PATH)
 			}
 
@@ -37,6 +35,8 @@ export const createMazeRenderer = (p, dimensions) => {
 
 	const getDimensions = () => dimensions
 
+	const renderDensity = (ranges) => renderDensityRanges(p, ranges, dimensions)
+
 	return {
 		setDimensions,
 		renderMaze,
@@ -44,6 +44,7 @@ export const createMazeRenderer = (p, dimensions) => {
 		renderEnd,
 		renderPathWithColor,
 		getDimensions,
+		renderDensity
 	}
 }
 

@@ -12,6 +12,7 @@ import { createEmptyOccupancyGrid } from "./grid"
  * @property {function} sampleLowestDensity - Returns a random point from the least explored region.
  * @property {function} foundEndPosition - Returns whether or not the end position has been located.
  * @property {function} getEndPosition - Returns the end position or null if it hasn't been found.
+ * @property {funciton} collectDensityRanges - Returns a sequence of density readings
  */
 
 /**
@@ -97,6 +98,7 @@ export const createEnvironmentSensor = (
 		sampleLowestDensity,
 		foundEndPosition,
 		getEndPosition,
+		collectDensityRanges: densityQuadtree.collectDensityRanges
 	}
 }
 

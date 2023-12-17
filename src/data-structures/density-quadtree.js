@@ -1,5 +1,5 @@
-const DENSITY_THRESHOLD = 25
-const MAX_DEPTH = 5
+const DENSITY_THRESHOLD = 200
+const MAX_DEPTH = 2
 
 /**
  * Creates a quadtree for a grid-based environment that
@@ -12,17 +12,18 @@ export const createDensityQuadtree = (rows, cols) => {
 	const root = makeQuadtreeNode(
 		0,
 		0,
-		rows - 1,
+		rows,
 		0,
-		cols - 1,
+		cols,
 		DENSITY_THRESHOLD,
 		MAX_DEPTH
 	)
 
 	const addPosition = (position) => root.addPosition(position)
 	const findMinDensity = () => root.findMinDensity()
+	const collectDensityRanges = () => root.collectDensityRanges()
 
-	return { addPosition, findMinDensity }
+	return { addPosition, findMinDensity, collectDensityRanges }
 }
 
 const makeQuadtreeNode = (
@@ -50,6 +51,7 @@ const makeQuadtreeNode = (
 			midRow,
 			startCol,
 			midCol,
+			DENSITY_THRESHOLD,
 			depthRemaining - 1
 		)
 		topRight = makeQuadtreeNode(
@@ -58,6 +60,7 @@ const makeQuadtreeNode = (
 			midRow,
 			midCol,
 			endCol,
+			DENSITY_THRESHOLD,
 			depthRemaining - 1
 		)
 		bottomLeft = makeQuadtreeNode(
@@ -66,6 +69,7 @@ const makeQuadtreeNode = (
 			endRow,
 			startCol,
 			midCol,
+			DENSITY_THRESHOLD,
 			depthRemaining - 1
 		)
 		bottomRight = makeQuadtreeNode(
@@ -74,6 +78,7 @@ const makeQuadtreeNode = (
 			endRow,
 			midCol,
 			endCol,
+			DENSITY_THRESHOLD,
 			depthRemaining - 1
 		)
 
@@ -123,10 +128,24 @@ const makeQuadtreeNode = (
 		return min
 	}
 
+	const collectDensityRanges = () => {
+		if (!isSplit)
+			return [
+				{
+					range: { startRow, endRow, startCol, endCol },
+					densityProportion: density / DENSITY_THRESHOLD,
+				},
+			]
+
+		return [topLeft, topRight, bottomLeft, bottomRight]
+			.map((node) => node.collectDensityRanges())
+			.flat()
+	}
+
 	// Split if the area is dense enough
 	if (density > densityThreshold && !isSplit && depthRemaining > 0)
 		splitNode()
 
-	return { addPosition, findMinDensity }
+	return { addPosition, findMinDensity, collectDensityRanges }
 }
 
