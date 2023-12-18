@@ -250,3 +250,6 @@ a.canvas-menu-pill:hover {
 	border: 1px solid #fff;
 }
 
+#menu-graph-btn {
+	visibility: hidden;
+}
