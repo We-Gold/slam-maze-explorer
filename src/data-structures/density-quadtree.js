@@ -1,5 +1,4 @@
-const DENSITY_THRESHOLD = 200
-const MAX_DEPTH = 2
+const MAX_DEPTH = 3
 
 /**
  * Creates a quadtree for a grid-based environment that
@@ -9,15 +8,7 @@ const MAX_DEPTH = 2
  * @param {number} [densityThreshold]
  */
 export const createDensityQuadtree = (rows, cols) => {
-	const root = makeQuadtreeNode(
-		0,
-		0,
-		rows,
-		0,
-		cols,
-		DENSITY_THRESHOLD,
-		MAX_DEPTH
-	)
+	const root = makeQuadtreeNode([], 0, rows, 0, cols, rows * cols, MAX_DEPTH)
 
 	const addPosition = (position) => root.addPosition(position)
 	const findMinDensity = () => root.findMinDensity()
@@ -27,71 +18,96 @@ export const createDensityQuadtree = (rows, cols) => {
 }
 
 const makeQuadtreeNode = (
-	totalDensity,
+	initialPoints,
 	startRow,
 	endRow,
 	startCol,
 	endCol,
-	densityThreshold,
+	area,
 	depthRemaining
 ) => {
-	let density = totalDensity
+	let points = initialPoints
 	let topLeft, topRight, bottomLeft, bottomRight
 	let isSplit = false
 
 	const midRow = Math.floor(startRow + (endRow - startRow) / 2)
 	const midCol = Math.floor(startCol + (endCol - startCol) / 2)
 
+	const splitThreshold = area / 16
+
 	const splitNode = () => {
-		const avgDensity = density / 4
+		let topLeftPoints = [],
+			topRightPoints = [],
+			bottomLeftPoints = [],
+			bottomRightPoints = []
+
+		// Sort points into their respective quadrants
+		for (const pos of points) {
+			const isTop = pos.getRow() <= midRow
+			const isLeft = pos.getCol() <= midCol
+
+			if (isTop && isLeft) {
+				topLeftPoints.push(pos)
+			} else if (isTop && !isLeft) {
+				topRightPoints.push(pos)
+			} else if (!isTop && isLeft) {
+				bottomLeftPoints.push(pos)
+			} else if (!isTop && !isLeft) {
+				bottomRightPoints.push(pos)
+			}
+		}
+
+		// Calculate the area of each of the splits
+		const newArea = area / 4
 
 		topLeft = makeQuadtreeNode(
-			avgDensity,
+			topLeftPoints,
 			startRow,
 			midRow,
 			startCol,
 			midCol,
-			DENSITY_THRESHOLD,
+			newArea,
 			depthRemaining - 1
 		)
 		topRight = makeQuadtreeNode(
-			avgDensity,
+			topRightPoints,
 			startRow,
 			midRow,
 			midCol,
 			endCol,
-			DENSITY_THRESHOLD,
+			newArea,
 			depthRemaining - 1
 		)
 		bottomLeft = makeQuadtreeNode(
-			avgDensity,
+			bottomLeftPoints,
 			midRow,
 			endRow,
 			startCol,
 			midCol,
-			DENSITY_THRESHOLD,
+			newArea,
 			depthRemaining - 1
 		)
 		bottomRight = makeQuadtreeNode(
-			avgDensity,
+			bottomRightPoints,
 			midRow,
 			endRow,
 			midCol,
 			endCol,
-			DENSITY_THRESHOLD,
+			newArea,
 			depthRemaining - 1
 		)
 
 		isSplit = true
-		density = 0
+		points = []
 	}
 
 	const addPosition = (position) => {
 		if (!isSplit) {
-			density++
+			points.push(position)
 
 			// Split if the area is dense enough
-			if (density > densityThreshold && depthRemaining > 0) splitNode()
+			if (points.length > splitThreshold && depthRemaining > 0)
+				splitNode()
 
 			return
 		}
@@ -112,7 +128,10 @@ const makeQuadtreeNode = (
 
 	const findMinDensity = () => {
 		if (!isSplit)
-			return { range: { startRow, endRow, startCol, endCol }, density }
+			return {
+				range: { startRow, endRow, startCol, endCol },
+				density: points.length / area,
+			}
 
 		const quadrants = [topRight, bottomLeft, bottomRight]
 
@@ -123,6 +142,7 @@ const makeQuadtreeNode = (
 			const _min = quad.findMinDensity()
 
 			if (_min.density < min.density) min = _min
+			if (_min.density === min.density && Math.random() > 0.5) min = _min
 		}
 
 		return min
@@ -133,7 +153,7 @@ const makeQuadtreeNode = (
 			return [
 				{
 					range: { startRow, endRow, startCol, endCol },
-					densityProportion: density / DENSITY_THRESHOLD,
+					densityProportion: points.length / splitThreshold,
 				},
 			]
 
@@ -143,7 +163,7 @@ const makeQuadtreeNode = (
 	}
 
 	// Split if the area is dense enough
-	if (density > densityThreshold && !isSplit && depthRemaining > 0)
+	if (points.length > splitThreshold && !isSplit && depthRemaining > 0)
 		splitNode()
 
 	return { addPosition, findMinDensity, collectDensityRanges }
